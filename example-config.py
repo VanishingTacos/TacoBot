@@ -1,0 +1,5 @@
+hostname = 'localhost'
+user = 'root'
+password = 'password'
+database = 'database'
+KEY = 'KEY'
