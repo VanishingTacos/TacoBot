@@ -19,7 +19,7 @@ class events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
-        if not ctx.message.content.startswith('.clear'):
+        if not ctx.message.content.startswith('.clear') or ctx.message.content.startswith('.clearallwarnings'):
             await asyncio.sleep(3)
             await ctx.message.delete()
 
