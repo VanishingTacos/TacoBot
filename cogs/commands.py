@@ -43,9 +43,6 @@ class _commands(commands.Cog):
             .set_footer(text = f'{guild} | {ctx.guild.id}')
         )
         await ctx.send(embed = embed)
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('Missing required arguments')
 
 def setup(bot):
     bot.add_cog(_commands(bot))
