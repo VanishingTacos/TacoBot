@@ -6,28 +6,40 @@
 #   mods!                         #
 #*********************************#
 
+from re import DEBUG
 import discord
+from discord import embeds
 from discord.ext import commands
-import mysql.connector
+import json
+import os
 import asyncio
+from datetime import datetime
 from config import *
 
-# connect to database
-db = mysql.connector.connect(
-    host=hostname,
-    user=user,
-    passwd=password,
-    database=database
-)
 
-curr = db.cursor()
+# check for warnings.json file
+if not os.path.exists('./JSON/warnings.json'):
+    with open('./JSON/warnings.json', 'w') as f:
+        json.dump({}, f)
 
-# are we connected?
-try:
-    db.connect()
-    print('Connected to database')
-except:
-    exit('DB connection error')
+#load warnings.json
+with open('./JSON/warnings.json', 'r') as f:
+    loadWarnings = json.load(f)
+
+# function for saving to warnings.json
+def saveWarnings(warnings):
+    with open('./JSON/warnings.json', 'w') as f:
+        json.dump(warnings, f)
+
+# Get current time and date
+def getTime():
+    return datetime.now().strftime('%m/%d/%y %I:%M:%S %p')
+
+# make embed
+def makeEmbed(color, name, value):
+    embed = discord.Embed(color = color)
+    embed.add_field(name = name, value = value)
+    return embed
 
 class moderation(commands.Cog):
 
@@ -40,46 +52,47 @@ class moderation(commands.Cog):
     @commands.has_role('new role1')
     async def slowmode(self, ctx, seconds : int = 0):
         await ctx.channel.edit(slowmode_delay = seconds)
-        if seconds != 0:
-            await ctx.send(f'Slowmode has set to {seconds} seconds')
-        else: 
-            await ctx.send('Slowmode has been disabled ')
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'Slowmode set to {seconds} seconds!'))
 
     # give warning
     @commands.command(name = 'warn')
     @commands.has_role('new role1')
-    async def warn(self, ctx, username : discord.Member):
-
-        curr.execute("SELECT * from users WHERE username=%s", (str(username),))
-        results = curr.fetchall()
-        if len(results) == 0:
-            if username.id:
-                embed = discord.Embed(color = 0xFF0000)
-                embed.add_field(name = 'Warning Notice', value = f'‼️ {username.mention} you have been warned!')
-                await ctx.send(embed=embed)
-                l = curr.execute('INSERT INTO users (user_id, username, been_warned, warned_date, warned_times) VALUES (%s,%s,%s,%s,%s)',(
-                    int(username.id),
-                    str(username),
-                    'yes',
-                    get_datetime(),
-                    1
-                ))
-
-                db.commit()
+    async def warn(self, ctx, username : discord.Member, * ,note=None):
+        if str(username.id) not in loadWarnings:
+            loadWarnings[username.id] = []
+            loadWarnings[username.id].append({
+            'warned_by' : ctx.author.id,
+            'time' : getTime(),
+            'note' : note
+        })
+            # save to json
+            saveWarnings(loadWarnings)
+            await ctx.send(f'{username.mention} has been warned')
         else:
-            if username.id:
-                curr.execute('SELECT warned_times FROM users WHERE username = %s LIMIT 1', (str(username),))
-                result = curr.fetchall()[0][0]
-                if result:
-                    result = result
-                else:
-                    result = 0
-                embed = discord.Embed(color = 0xFF0000)
-                embed.add_field(name = 'Warning Notice', value = f'‼️ {username.mention} you have been warned {result + 1} times!')
-                await ctx.send(embed=embed)
-                curr.execute('UPDATE users SET warned_times=%s WHERE username=%s', (result +1,str(username)))
-                db.commit()
-    
+            # add warning to user
+            loadWarnings[str(username.id)].append({
+            'warned_by' : ctx.author.id,
+            'time' : getTime(),
+            'note' : note
+        })
+            # save to json
+            saveWarnings(loadWarnings)
+            await ctx.send(f'{username.mention} has been warned')
+
+    @commands.command(name = 'listwarnings')
+    @commands.has_role('new role1')
+    async def listwarnings(self, ctx, username : discord.Member):
+        if str(username.id) not in loadWarnings:
+            await ctx.send(f'{username.mention} has no warnings')
+        else:
+            embed = discord.Embed(title = f'{username.name} warnings', color = discord.Color.red())
+            print(username.avatar_url)
+            for warning in loadWarnings[str(username.id)]:
+                embed.add_field(name = warning['time'], value = f'Warned by {self.bot.get_user(int(warning["warned_by"])).name}\n{warning["note"]}')
+                embed.set_thumbnail(url = username.avatar_url)
+            await ctx.send(embed = embed)
+
+
     # kick member
     @commands.command(name = 'kick')
     @commands.has_role('new role1')
@@ -102,38 +115,24 @@ class moderation(commands.Cog):
     @commands.command(name = 'unban')
     @commands.has_role('new role1')
     async def unban(self, ctx, *, username):
-        print('debug')
         banned_users = await ctx.guild.bans()
-        username_name, username_discriminator = username.split('#')
         for ban_entry in banned_users:
             user = ban_entry.user
-            
-            if (user.name, user.discriminator) == (username_name, username_discriminator):
-                await ctx.guild.unban(user)
-                await ctx.send(f'Unbanned {user.name}#{user.discriminator}!')
-
+            await ctx.guild.unban(user)
+            embed = discord.Embed()
+            embed.add_field(name = 'Unban Succsess', value = f'✅ {user.mention} has been unbanned!')
+            msg = await ctx.send(embed = embed)
 
     # remove all warnings from member
     @commands.command(name = 'clearallwarnings')
     @commands.has_role('new role1')
     async def clearallwarnings(self, ctx, username : discord.Member):
-        curr.execute('SELECT warned_times FROM users WHERE username=%s', (str(username),))
-        result = curr.fetchall()
-
-        if result[0] != (None,):
-            curr.execute('UPDATE users SET warned_times=%s WHERE username=%s', (None,str(username)))
-            db.commit()
-            embed = discord.Embed(color = 0x32CD32)
-            embed.add_field(name = 'Succsess', value = f'✅ All warnings for {username.name} have been removed!')
-            msg = await ctx.send(embed=embed)
-            await asyncio.sleep(3)
-            await msg.delete()
+        if str(username.id) not in loadWarnings:
+            await ctx.send(f'{username.mention} has no warnings')
         else:
-            embed = discord.Embed(color = 0xFF0000)
-            embed.add_field(name = 'No warnings', value = f'❌ {username.name} has no warnings to remove!')
-            msg = await ctx.send(embed=embed)
-            await asyncio.sleep(3)
-            await msg.delete()
+            loadWarnings[str(username.id)] = []
+            saveWarnings(loadWarnings)
+            await ctx.send(f'{username.mention} warnings have been cleared')
 
     # purge messages
     @commands.command(name = 'clear')
@@ -150,37 +149,16 @@ class moderation(commands.Cog):
     @commands.command(name = 'userinfo')
     @commands.has_role('new role1')
     async def userinfo(self, ctx, username : discord.Member):
-        curr.execute('SELECT * FROM users WHERE username = %s', (str(username),))
-        results = curr.fetchall()
-
-
-        if results != []:
-            warned_times = results[0][5]
-        else:
-            warned_times = None
-
-        perm_list = len([perm[0] for perm in username.guild_permissions if perm[1]])
-        role_list = [r.name for r in username.roles if r != ctx.guild.default_role]
-        roles = ', '.join(role_list)
-
-        if len(roles) == 0:
-            roles = None
-        else:
-            roles = roles
-
-
-        embed = discord.Embed(title = username.name + ' Info')
-        (   
-            embed
-            .add_field(name = 'ID', value = username.id, inline = True)
-            .add_field(name = 'Roles', value = roles)
-            .add_field(name = 'Permissions', value = perm_list, inline = True)
-            .add_field(name = 'Warnings', value = warned_times, inline = True)
-            .add_field(name = 'Joined Server', value = username.joined_at.strftime('%m/%d/%Y \n %I:%M %p'))
-            .add_field(name = 'Created account', value = username.created_at.strftime('%m/%d/%Y \n %I:%M %p'))
-            .set_thumbnail(url = username.avatar_url)
-            .set_footer(icon_url = ctx.author.avatar_url, text = f'Requested by {ctx.author.name}')
-        )
+        embed = discord.Embed(color = discord.Color.red())
+        embed.add_field(name = 'Username', value = username.name)
+        embed.add_field(name = 'ID', value = username.id)
+        embed.add_field(name = 'Nickname', value = username.nick)
+        embed.add_field(name = 'Status', value = username.status)
+        embed.add_field(name = 'Joined At', value = username.joined_at)
+        embed.add_field(name = 'Created At', value = username.created_at)
+        embed.add_field(name = 'Top Role', value = username.top_role)
+        embed.set_thumbnail(url = username.avatar_url)
+        embed.set_footer(text = f'Requested by {ctx.author.name}', icon_url = ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
 

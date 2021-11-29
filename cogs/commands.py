@@ -19,31 +19,31 @@ class _commands(commands.Cog):
     # shows infomation the server
     @commands.command(name = 'serverinfo')
     async def serverinfo(self, ctx):
-        guild = self.bot.get_guild(ctx.guild.id)
-        online = 0
-        memberlist = guild.members
-        for member in memberlist:
-            if str(member.status) == 'online':
-                online += 1   
-        bot_list = len([bot.mention for bot in ctx.guild.members if bot.bot])
-        text_channels = len(ctx.guild.text_channels)
-        voice_channels = len(ctx.guild.voice_channels)
-        categories = len(ctx.guild.categories)
-        roles = len(ctx.guild.roles)
-        channels = text_channels + voice_channels
-        embed = discord.Embed(color = ctx.guild.owner.top_role.color)
-        (
-            embed
-            .add_field(name = 'Owner', value = ctx.guild.owner)
-            .add_field(name = 'Members', value = f'{ctx.guild.member_count} members,\n {online} online\n {bot_list} bots, {ctx.guild.member_count - bot_list} humans')
-            .add_field(name = 'Total Channels', value = f'{channels} total channels:\n {categories} categories\n {text_channels} text, {voice_channels} voice',)
-            .add_field(name = 'Total Roles', value = f'{roles}',)
-            .add_field(name = 'Server Created', value = ctx.guild.created_at.strftime('%a, %d %b %Y \n %H:%M:%S %ZGMT'),)
-            .set_thumbnail(url = str(ctx.guild.icon_url))
-            .set_footer(text = f'{guild} | {ctx.guild.id}')
-        )
-        await ctx.send(embed = embed)
+        embed = discord.Embed(title=f'{ctx.guild.name}', description=f'Server ID: {ctx.guild.id}', color=0x00ff00)
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.add_field(name='Owner', value=ctx.guild.owner)
+        embed.add_field(name='Members', value=ctx.guild.member_count)
+        embed.add_field(name='Created', value=ctx.guild.created_at.strftime('%a, %d %b %Y \n %H:%M:%S %ZGMT'))
+        embed.add_field(name='Roles', value=len(ctx.guild.roles))
+        embed.add_field(name='Channels', value=len(ctx.guild.channels))
+        embed.add_field(name='Emojis', value=len(ctx.guild.emojis))
+        embed.add_field(name='Verification Level', value=ctx.guild.verification_level)
+        print(ctx.guild.verification_level)
+        embed.add_field(name='Explicit Content Filter', value=ctx.guild.explicit_content_filter)
+        await ctx.send(embed=embed)
 
+    # shows infomation about the bot
+    @commands.command(name = 'botinfo')
+    async def botinfo(self, ctx):
+        embed = discord.Embed(color = 0x00ff00)
+        embed.add_field(name = 'Bot Name', value = self.bot.user.name)
+        embed.add_field(name = 'Bot ID', value = self.bot.user.id)
+        embed.add_field(name = 'Bot Version', value = '1.0.0')
+        embed.add_field(name = 'Bot Owner', value = 'VanishingTacos#1391')
+        embed.add_field(name = 'Bot Created', value = self.bot.user.created_at.strftime('%a, %d %b %Y \n %H:%M:%S %ZGMT'))
+        embed.add_field(name = 'Bot Latency', value = f'{round(self.bot.latency, 3)}')
+        embed.set_thumbnail(url = str(self.bot.user.avatar_url))
+        await ctx.send(embed = embed)
 def setup(bot):
     bot.add_cog(_commands(bot))
 
