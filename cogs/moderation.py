@@ -110,6 +110,39 @@ class moderation(commands.Cog):
         embed = discord.Embed()
         embed.add_field(name = 'Ban Succsess', value = f'✅ {username.mention} has been banned!')
         msg = await ctx.send(embed = embed)
+
+    #remove only messages from a specific user
+    @commands.command(name = 'purgeuser')
+    @commands.has_role('new role1')
+    async def purgeusers(self, ctx, username : discord.Member, int : int = 10):
+        await ctx.channel.purge(limit = int, check = lambda m: m.author == username)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ Messages from {username.name} has been removed!'))
+    # mute member
+    @commands.command(name = 'mute')
+    @commands.has_role('new role1')
+    async def mute(self, ctx, username : discord.Member, *, reason=None):
+        
+        #create muted role if it doesn't exist
+        if not discord.utils.get(ctx.guild.roles, name='muted'):
+            mutedRole = await ctx.guild.create_role(name='muted')
+            for channel in ctx.guild.channels:
+                await channel.set_permissions(mutedRole, send_messages=False)
+        
+        role = discord.utils.get(ctx.guild.roles, name='muted')
+        await username.add_roles(role)
+        embed = discord.Embed()
+        embed.add_field(name = 'Mute Succsess', value = f'{username.mention} has been muted!')
+        await ctx.send(embed = embed)
+    
+    # unmute member
+    @commands.command(name = 'unmute')
+    @commands.has_role('new role1')
+    async def unmute(self, ctx, username : discord.Member, *, reason=None):
+        role = discord.utils.get(ctx.guild.roles, name='muted')
+        await username.remove_roles(role)
+        embed = discord.Embed()
+        embed.add_field(name = 'Unmute Succsess', value = f'{username.mention} has been unmuted!')
+        await ctx.send(embed = embed)
     
     # unban member
     @commands.command(name = 'unban')
@@ -160,6 +193,76 @@ class moderation(commands.Cog):
         embed.set_thumbnail(url = username.avatar_url)
         embed.set_footer(text = f'Requested by {ctx.author.name}', icon_url = ctx.author.avatar_url)
         await ctx.send(embed=embed)
+    
+    # create poll
+    @commands.command(name = 'poll')
+    @commands.has_role('new role1')
+    async def poll(self, ctx, *, question):
+        embed = discord.Embed(title = 'Poll', description = question, color = discord.Color.purple())
+        msg = await ctx.send(embed = embed)
+        await msg.add_reaction('✅')
+        await msg.add_reaction('❌')
+
+    # add role
+    @commands.command(name = 'addrole')
+    @commands.has_role('new role1')
+    async def addrole(self, ctx, username : discord.Member, *, role):
+        role = discord.utils.get(ctx.guild.roles, name = role)
+        await username.add_roles(role)
+        embed = discord.Embed(title = 'Role Added', description = f'{role} has been added to {username.mention}', color = discord.Color.green())
+        await ctx.send(embed = embed)
+    
+    # remove role
+    @commands.command(name = 'removerole')
+    @commands.has_role('new role1')
+    async def removerole(self, ctx, username : discord.Member, *, role):
+        role = discord.utils.get(ctx.guild.roles, name = role)
+        print(role)
+        await username.remove_roles(role)
+        embed = discord.Embed(title = 'Role Removed', description = f'{role} has been removed from {username.mention}', color = discord.Color.red())
+        await ctx.send(embed = embed)
+    
+    # create new role
+    @commands.command(name = 'createrole')
+    @commands.has_role('new role1')
+    async def createrole(self, ctx, *, role):
+        await ctx.guild.create_role(name = role)
+        embed = discord.Embed(title = 'Role Created', description = f'{role} has been created', color = discord.Color.green())
+        await ctx.send(embed = embed)
+    
+    # delete role from server
+    @commands.command(name = 'deleterole')
+    @commands.has_role('new role1')
+    async def deleterole(self, ctx, *, role):
+        role = discord.utils.get(ctx.guild.roles, name = role)
+        await role.delete()
+        embed = discord.Embed(title = 'Role Deleted', description = f'{role} has been deleted', color = discord.Color.red())
+        await ctx.send(embed = embed)
+    
+    # create new text channel
+    @commands.command(name = 'createchannel')
+    @commands.has_role('new role1')
+    async def createchannel(self, ctx, *, channel):
+        await ctx.guild.create_text_channel(channel)
+        embed = discord.Embed(title = 'Channel Created', description = f'{channel} has been created', color = discord.Color.green())
+        await ctx.send(embed = embed)
+    
+    #create new voice channel
+    @commands.command(name = 'createvoicechannel')
+    @commands.has_role('new role1')
+    async def createvoicechannel(self, ctx, *, channel):
+        await ctx.guild.create_voice_channel(channel)
+        embed = discord.Embed(title = 'Channel Created', description = f'{channel} has been created', color = discord.Color.green())
+        await ctx.send(embed = embed)
+
+    # delete channel
+    @commands.command(name = 'deletechannel')
+    @commands.has_role('new role1')
+    async def deletechannel(self, ctx, *, channel):
+        channel = discord.utils.get(ctx.guild.channels, name = channel)
+        await channel.delete()
+        embed = discord.Embed(title = 'Channel Deleted', description = f'{channel} has been deleted', color = discord.Color.red())
+        await ctx.send(embed = embed)
 
 
 
