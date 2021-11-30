@@ -1,8 +1,10 @@
 import discord
 from discord.ext import commands
 
-def makeEmbed(Color, Title, Description):
-    return discord.Embed(title=Title, description=Description, color=Color)
+def makeEmbed(Color, Title, Description, footer):
+    embed = discord.Embed(title=Title, description=Description, color=Color)
+    embed.set_footer(text=footer)
+    return embed
 
 class _error(commands.Cog):
 
@@ -13,29 +15,33 @@ class _error(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
-            pass
+            embed = makeEmbed(0xFF0000, "Command not found", "The command you tried to use was not found.", None)
+            await ctx.send(embed=embed)
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Missing argument", f"{error}"))
+            embed = makeEmbed(0xFF0000, "Missing required argument", "You are missing a required argument.", error)
+            await ctx.send(embed=embed)
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Missing permissions", f"{error}"))
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Bad argument", f"{error}"))
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "On cooldown", f"{error}"))
-        elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Command invoke error", f"{error}"))
-        elif isinstance(error, commands.CheckFailure):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Check failure", f"{error}"))
-        elif isinstance(error, commands.CommandError):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Command error", f"{error}"))
-        elif isinstance(error, commands.UserInputError):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "User input error", f"{error}"))
-        elif isinstance(error, commands.CommandNotFound):
-            await ctx.send(embed = makeEmbed(discord.Color.red(), "Command not found", f"{error}"))
-        elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send(embed = makeEmbed("No private message", f"{error}"))
+            embed = makeEmbed(0xFF0000, "Missing permissions", "You are missing permissions to use this command.", error)
+            await ctx.send(embed=embed)
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send(embed = makeEmbed("Bot missing permissions", f"{error}"))
+            embed = makeEmbed(0xFF0000, "Missing permissions", "I am missing permissions to use this command.", error)
+            await ctx.send(embed=embed)
+        elif isinstance(error, commands.CommandOnCooldown):
+            embed = makeEmbed(0xFF0000, "Command on cooldown", "This command is on cooldown. Try again in {} seconds.".format(round(error.retry_after, 2)), None)
+            await ctx.send(embed=embed)
+        elif isinstance(error, commands.UserInputError):
+            embed = makeEmbed(0xFF0000, "Invalid argument", "An invalid argument was passed to the command.", error)
+            await ctx.send(embed=embed)
+        elif isinstance(error, commands.ArgumentParsingError):
+            embed = makeEmbed(0xFF0000, "Argument parsing error", "An error occured while parsing the arguments.", error)
+            await ctx.send(embed=embed)
+        elif isinstance(error, commands.CheckFailure):
+            embed = makeEmbed(0xFF0000, "Check failure", "The check you used failed.", error)
+            await ctx.send(embed=embed)
+        elif isinstance(error, commands.CommandInvokeError):
+            embed = makeEmbed(0xFF0000, "Command invoke error", "An error occured while invoking the command.", error)
+            await ctx.send(embed=embed)
+        
         
         
 

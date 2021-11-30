@@ -67,7 +67,7 @@ class moderation(commands.Cog):
         })
             # save to json
             saveWarnings(loadWarnings)
-            await ctx.send(f'{username.mention} has been warned')
+            await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} has been warned'))
         else:
             # add warning to user
             loadWarnings[str(username.id)].append({
@@ -77,8 +77,9 @@ class moderation(commands.Cog):
         })
             # save to json
             saveWarnings(loadWarnings)
-            await ctx.send(f'{username.mention} has been warned')
+            await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} has been warned'))
 
+    #list warnings
     @commands.command(name = 'listwarnings')
     @commands.has_role('new role1')
     async def listwarnings(self, ctx, username : discord.Member):
@@ -86,7 +87,6 @@ class moderation(commands.Cog):
             await ctx.send(f'{username.mention} has no warnings')
         else:
             embed = discord.Embed(title = f'{username.name} warnings', color = discord.Color.red())
-            print(username.avatar_url)
             for warning in loadWarnings[str(username.id)]:
                 embed.add_field(name = warning['time'], value = f'Warned by {self.bot.get_user(int(warning["warned_by"])).name}\n{warning["note"]}')
                 embed.set_thumbnail(url = username.avatar_url)
@@ -98,18 +98,14 @@ class moderation(commands.Cog):
     @commands.has_role('new role1')
     async def kick(self, ctx, username : discord.Member, *, reason=None):
         await username.kick(reason=reason)
-        embed = discord.Embed()
-        embed.add_field(name = 'Kick Succsess', value = f'{username.mention} has been kicked!')
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Kick Success', f'{username.mention} has been kicked!'))
 
     # ban member
     @commands.command(name = 'ban')
     @commands.has_role('new role1')
     async def ban(self, ctx, username : discord.Member, *, reason=None):
         await username.ban(reason=reason)
-        embed = discord.Embed()
-        embed.add_field(name = 'Ban Succsess', value = f'✅ {username.mention} has been banned!')
-        msg = await ctx.send(embed = embed)
+        msg = await ctx.send(embed = makeEmbed(discord.Color.green(), 'Ban Succsess', f'{username.mention} has been banned!'))
 
     #remove only messages from a specific user
     @commands.command(name = 'purgeuser')
@@ -117,6 +113,7 @@ class moderation(commands.Cog):
     async def purgeusers(self, ctx, username : discord.Member, int : int = 10):
         await ctx.channel.purge(limit = int, check = lambda m: m.author == username)
         await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ Messages from {username.name} has been removed!'))
+
     # mute member
     @commands.command(name = 'mute')
     @commands.has_role('new role1')
@@ -131,8 +128,18 @@ class moderation(commands.Cog):
         role = discord.utils.get(ctx.guild.roles, name='muted')
         await username.add_roles(role)
         embed = discord.Embed()
-        embed.add_field(name = 'Mute Succsess', value = f'{username.mention} has been muted!')
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} has been muted!'))
+    
+    #temp mute member
+    @commands.command(name = 'tempmute')
+    @commands.has_role('new role1')
+    async def tempmute(self, ctx, username : discord.Member, time : int, units, *, reason=None):
+        role = discord.utils.get(ctx.guild.roles, name='muted')
+        await username.add_roles(role)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} has been muted for {time} seconds!'))
+        await asyncio.sleep(time)
+        await username.remove_roles(role)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} has been unmuted!'))
     
     # unmute member
     @commands.command(name = 'unmute')
@@ -140,9 +147,7 @@ class moderation(commands.Cog):
     async def unmute(self, ctx, username : discord.Member, *, reason=None):
         role = discord.utils.get(ctx.guild.roles, name='muted')
         await username.remove_roles(role)
-        embed = discord.Embed()
-        embed.add_field(name = 'Unmute Succsess', value = f'{username.mention} has been unmuted!')
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} has been unmuted!'))
     
     # unban member
     @commands.command(name = 'unban')
@@ -152,9 +157,7 @@ class moderation(commands.Cog):
         for ban_entry in banned_users:
             user = ban_entry.user
             await ctx.guild.unban(user)
-            embed = discord.Embed()
-            embed.add_field(name = 'Unban Succsess', value = f'✅ {user.mention} has been unbanned!')
-            msg = await ctx.send(embed = embed)
+            await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ {user.mention} has been unbanned!'))
 
     # remove all warnings from member
     @commands.command(name = 'clearallwarnings')
@@ -163,7 +166,7 @@ class moderation(commands.Cog):
         if str(username.id) not in loadWarnings:
             await ctx.send(f'{username.mention} has no warnings')
         else:
-            loadWarnings[str(username.id)] = []
+            del loadWarnings[str(username.id)]
             saveWarnings(loadWarnings)
             await ctx.send(f'{username.mention} warnings have been cleared')
 
@@ -172,9 +175,7 @@ class moderation(commands.Cog):
     @commands.has_role('new role1')
     async def clear(self, ctx: commands.Context, amount : int):
         await ctx.channel.purge(limit=amount + 1)
-        embed = discord.Embed(color = 0x32CD32)
-        embed.add_field(name = 'Succsess', value = f'✅ {amount} messages have been purged!')
-        msg = await ctx.send(embed = embed)
+        msg = await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ {amount} messages have been purged!'))
         await asyncio.sleep(3)
         await msg.delete()    
     
@@ -209,8 +210,7 @@ class moderation(commands.Cog):
     async def addrole(self, ctx, username : discord.Member, *, role):
         role = discord.utils.get(ctx.guild.roles, name = role)
         await username.add_roles(role)
-        embed = discord.Embed(title = 'Role Added', description = f'{role} has been added to {username.mention}', color = discord.Color.green())
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ {role} has been added to {username.mention}'))
     
     # remove role
     @commands.command(name = 'removerole')
@@ -219,16 +219,14 @@ class moderation(commands.Cog):
         role = discord.utils.get(ctx.guild.roles, name = role)
         print(role)
         await username.remove_roles(role)
-        embed = discord.Embed(title = 'Role Removed', description = f'{role} has been removed from {username.mention}', color = discord.Color.red())
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.red(), 'Role Removed', f'{role} has been removed from {username.mention}'))
     
     # create new role
     @commands.command(name = 'createrole')
     @commands.has_role('new role1')
     async def createrole(self, ctx, *, role):
         await ctx.guild.create_role(name = role)
-        embed = discord.Embed(title = 'Role Created', description = f'{role} has been created', color = discord.Color.green())
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Role Created', f'{role} has been created'))
     
     # delete role from server
     @commands.command(name = 'deleterole')
@@ -236,33 +234,37 @@ class moderation(commands.Cog):
     async def deleterole(self, ctx, *, role):
         role = discord.utils.get(ctx.guild.roles, name = role)
         await role.delete()
-        embed = discord.Embed(title = 'Role Deleted', description = f'{role} has been deleted', color = discord.Color.red())
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.red(), 'Role Deleted', f'{role} has been deleted'))
     
     # create new text channel
     @commands.command(name = 'createchannel')
     @commands.has_role('new role1')
     async def createchannel(self, ctx, *, channel):
         await ctx.guild.create_text_channel(channel)
-        embed = discord.Embed(title = 'Channel Created', description = f'{channel} has been created', color = discord.Color.green())
-        await ctx.send(embed = embed)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Text Channel Created', f'{channel} has been created'))
     
     #create new voice channel
     @commands.command(name = 'createvoicechannel')
     @commands.has_role('new role1')
     async def createvoicechannel(self, ctx, *, channel):
         await ctx.guild.create_voice_channel(channel)
-        embed = discord.Embed(title = 'Channel Created', description = f'{channel} has been created', color = discord.Color.green())
-        await ctx.send(embed = embed)
+        await ctx.send( embed = makeEmbed(discord.Color.green(), 'Voice Channel Created', f'{channel} has been created'))
 
     # delete channel
     @commands.command(name = 'deletechannel')
     @commands.has_role('new role1')
     async def deletechannel(self, ctx, *, channel):
         channel = discord.utils.get(ctx.guild.channels, name = channel)
+        print(channel)
         await channel.delete()
-        embed = discord.Embed(title = 'Channel Deleted', description = f'{channel} has been deleted', color = discord.Color.red())
-        await ctx.send(embed = embed)
+        await ctx.send(embed =  makeEmbed(discord.Color.red(), 'Channel Deleted', f'{channel} has been deleted'))
+    
+    #list channels
+    @commands.command(name = 'listchannels')
+    @commands.has_role('new role1')
+    async def listchannels(self, ctx):
+        for channel in ctx.guild.channels:
+            await ctx.send(f'{channel}')
 
 
 
