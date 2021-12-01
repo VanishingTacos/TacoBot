@@ -17,6 +17,7 @@ class _help(commands.Cog):
         embed.add_field(name = 'Moderation', value = '`.help moderation`')
         await ctx.send(embed = embed)
         
+    #.help moderation
     @help.command()
     async def moderation(self, ctx):
         embed = discord.Embed(title = 'Moderation Commands', color = discord.Color.green())
@@ -176,6 +177,38 @@ class _help(commands.Cog):
     async def createchannel(self, ctx):
         embed = discord.Embed(title = 'Create Channel', description= 'Creates a channel')
         embed.add_field(name = '**Syntax**', value = '`.createchannel [voice or text] [channel name]`')
+        await ctx.send(embed = embed)
+    
+    #========# fun commands #========#
+    
+    @help.command()
+    async def tictactoe(self, ctx):
+        embed = discord.Embed(title = 'Tic Tac Toe', description= 'Tic Tac Toe')
+        embed.add_field(name = '**Syntax**', value = '`.tictactoe [player 1] [player 2]`')
+        await ctx.send(embed = embed)
+    
+    @help.command()
+    async def rps(self, ctx):
+        embed = discord.Embed(title = 'Rock Paper Scissors', description= 'Rock Paper Scissors')
+        embed.add_field(name = '**Syntax**', value = '`.rps [player 1] [player 2]`')
+        await ctx.send(embed = embed)
+    
+    @help.command()
+    async def flip(self, ctx):
+        embed = discord.Embed(title = 'Flip', description= 'Flip a coin')
+        embed.add_field(name = '**Syntax**', value = '`.flip`')
+        await ctx.send(embed = embed)
+    
+    @help.command()
+    async def roll(self, ctx):
+        embed = discord.Embed(title = 'Roll', description= 'Roll a dice')
+        embed.add_field(name = '**Syntax**', value = '`.roll`')
+        await ctx.send(embed = embed)
+    
+    @help.command()
+    async def guess(self, ctx):
+        embed = discord.Embed(title = 'Guess', description= 'Guess a number')
+        embed.add_field(name = '**Syntax**', value = '`.guess [number]`')
         await ctx.send(embed = embed)
 
 

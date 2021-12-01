@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import random
 
-def makeembed(title, description, color, thumbnail):
+def makeembed(title, description, color, thumbnail = None):
     embed = discord.Embed(title=title, description=description, color=color)
     if thumbnail:
         embed.set_thumbnail(url=thumbnail)
@@ -28,12 +28,31 @@ class tictactoe(commands.Cog):
         dice = random.randint(1,6)
         await ctx.send(embed=makeembed('Rolling Dice', f'You rolled a {dice}', discord.Color.green(), 'https://www.nicepng.com/png/full/393-3932479_white-dice-png.png'))
     
-    # rock paper scissors
-    @commands.command(name='rpsls', aliases=['rps'])
-    async def rpsls(self, ctx):
-        choices = ['rock', 'paper', 'scissors']
-        choice = random.choice(choices)
-        await ctx.send(embed=makeembed('Rock Paper Scissors', f'You chose {choice}', discord.Color.green(), None))
+    # rock paper scissors between two players
+    @commands.command(name='rps', aliases=['rockpaperscissors'])
+    async def rps(self, ctx, player1: discord.Member, player2: discord.Member):
+        thumbnail = 'https://www.nicepng.com/png/full/797-7970629_scissors-vector-png.png'
+        player1choice = random.choice(['rock', 'paper', 'scissors'])
+        player2choice = random.choice(['rock', 'paper', 'scissors'])
+        if player1choice == 'rock' and player2choice == 'scissors':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player1} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == 'rock' and player2choice == 'paper':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player2} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == 'paper' and player2choice == 'rock':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player1} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == 'paper' and player2choice == 'scissors':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player2} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == 'scissors' and player2choice == 'paper':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player1} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == 'rock' and player2choice == 'scissors':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player2} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == 'scissors' and player2choice == 'rock':
+            await ctx.send(embed=makeembed('Rock Paper Scissors', f'{player1} wins!', discord.Color.green(), thumbnail))
+        elif player1choice == player2choice:
+            await ctx.send(embed=makeembed('Rock Paper Scissors', 'Tie!', discord.Color.green(), thumbnail))
+        
+
+
 
     # guess the number
     @commands.command(name='guess', aliases=['number'])
