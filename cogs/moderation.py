@@ -158,6 +158,20 @@ class moderation(commands.Cog):
             user = ban_entry.user
             await ctx.guild.unban(user)
             await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ {user.mention} has been unbanned!'))
+    
+    # change nickname
+    @commands.command(name = 'nickname')
+    @commands.has_role('new role1')
+    async def nickname(self, ctx, username : discord.Member, *, nickname):
+        await username.edit(nick = nickname)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} nickname has been changed to {nickname}'))
+    
+    # remove nickname
+    @commands.command(name = 'removenickname')
+    @commands.has_role('new role1')
+    async def removenickname(self, ctx, username : discord.Member):
+        await username.edit(nick = None)
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'{username.mention} nickname has been removed'))
 
     # remove all warnings from member
     @commands.command(name = 'clearallwarnings')
@@ -171,9 +185,9 @@ class moderation(commands.Cog):
             await ctx.send(f'{username.mention} warnings have been cleared')
 
     # purge messages
-    @commands.command(name = 'clear')
+    @commands.command(name = 'purge')
     @commands.has_role('new role1')
-    async def clear(self, ctx: commands.Context, amount : int):
+    async def purge(self, ctx: commands.Context, amount : int):
         await ctx.channel.purge(limit=amount + 1)
         msg = await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', f'✅ {amount} messages have been purged!'))
         await asyncio.sleep(3)
@@ -203,6 +217,13 @@ class moderation(commands.Cog):
         msg = await ctx.send(embed = embed)
         await msg.add_reaction('✅')
         await msg.add_reaction('❌')
+    
+    # say something
+    @commands.command(name = 'say')
+    @commands.has_role('new role1')
+    async def say(self, ctx, *, message):
+        await ctx.send(message)
+    
 
     # add role
     @commands.command(name = 'addrole')
@@ -236,19 +257,18 @@ class moderation(commands.Cog):
         await role.delete()
         await ctx.send(embed = makeEmbed(discord.Color.red(), 'Role Deleted', f'{role} has been deleted'))
     
-    # create new text channel
+    # create new text or voice channel
     @commands.command(name = 'createchannel')
     @commands.has_role('new role1')
-    async def createchannel(self, ctx, *, channel):
-        await ctx.guild.create_text_channel(channel)
-        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Text Channel Created', f'{channel} has been created'))
-    
-    #create new voice channel
-    @commands.command(name = 'createvoicechannel')
-    @commands.has_role('new role1')
-    async def createvoicechannel(self, ctx, *, channel):
-        await ctx.guild.create_voice_channel(channel)
-        await ctx.send( embed = makeEmbed(discord.Color.green(), 'Voice Channel Created', f'{channel} has been created'))
+    async def createchannel(self, ctx, type, *, channel):
+        if type == 'text':
+            await ctx.guild.create_text_channel(channel)
+            await ctx.send(embed = makeEmbed(discord.Color.green(), 'Channel Created', f'{channel} has been created'))
+        elif type == 'voice':
+            await ctx.guild.create_voice_channel(channel)
+            await ctx.send(embed = makeEmbed(discord.Color.green(), 'Channel Created', f'{channel} has been created'))
+        else:
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'Please enter a valid type'))
 
     # delete channel
     @commands.command(name = 'deletechannel')

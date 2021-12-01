@@ -12,9 +12,9 @@ class _commands(commands.Cog):
     #### commands ####
 
     # bot latency check
-    @commands.command()
-    async def ping(self,ctx):
-        await ctx.send(f'Took {round(self.bot.latency, 3)}')
+    @commands.command(name='ping', aliases=['latency'])
+    async def ping(self, ctx):
+        await ctx.send(f'Pong! {round(self.bot.latency * 1000)}ms')
 
     # shows infomation the server
     @commands.command(name = 'serverinfo')
@@ -44,6 +44,11 @@ class _commands(commands.Cog):
         embed.add_field(name = 'Bot Latency', value = f'{round(self.bot.latency, 3)}')
         embed.set_thumbnail(url = str(self.bot.user.avatar_url))
         await ctx.send(embed = embed)
+    
+    #create bot invite link
+    @commands.command(name = 'invite')
+    async def invite(self, ctx):
+        await ctx.send(f'Invite me to your server: {discord.utils.oauth_url(self.bot.user.id)}')
 def setup(bot):
     bot.add_cog(_commands(bot))
 
