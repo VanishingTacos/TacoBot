@@ -49,7 +49,10 @@ class events(commands.Cog):
     #delete command message after its executed
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
-        await ctx.message.delete()
+        if ctx.message.content.startswith('.'):
+            return
+        else:
+            await ctx.message.delete()
 
     #spam filter
     @commands.Cog.listener()
@@ -76,7 +79,9 @@ class events(commands.Cog):
             return
         if message.channel.id == 915101965820784661:
             return
-        embed = makeEmbed(0xFF0000, "Message Deleted", f"{message.author.name}'s message was deleted in {message.channel.mention} at {getTime()} \n\n ```{message.content}```")
+        if message.content.startswith('.'):
+            return
+        embed = makeEmbed(0xFF0000, "Message Deleted", f"{message.author.name}'s message was deleted in {message.channel.mention} at {getTime()} \n\n Message:\n```{message.content}```")
         await self.bot.get_channel(915101965820784661).send(embed = embed)
     
     #on_message_edit
@@ -88,7 +93,7 @@ class events(commands.Cog):
             return
         if before.channel.id == logChannel:
             return
-        embed = makeEmbed(0xFF0000, "Message Edited", f"{before.author.name}'s message was edited in {before.channel.mention} at {getTime()} \n\n Before:\n```{before.content}``` \n\n After:\n```{after.content}```")
+        embed = makeEmbed(0xFF0000, "Message Edited", f"{before.author.name}'s message was edited in {before.channel.mention} at {getTime()} \n\n Before:\n``` {before.content}``` \n\n After:\n```{after.content}```")
         await self.bot.get_channel(logChannel).send(embed = embed)
 
     #spam prevention
@@ -125,6 +130,12 @@ class events(commands.Cog):
 
         if len(author_msg_times[author_id]) > max_msg_per_window:
             await ctx.channel.send(embed = makeEmbed(0xFF0000, "Spam detected", "Please don't spam."))
+
+    #on memeber leave and send message to log channel
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        embed = makeEmbed(0xFF0000, "Member Left", f"{member.name}#{member.discriminator} has left the server at {getTime()}")
+        await self.bot.get_channel(logChannel).send(embed = embed)
             
 
 
