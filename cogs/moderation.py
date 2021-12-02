@@ -37,8 +37,11 @@ if not os.path.exists('./JSON/poll.json'):
         json.dump({}, f)
 
 # load poll.json
-with open('./JSON/poll.json', 'r') as f:
-    loadPolls = json.load(f)
+
+#function to load poll.json
+def _loadPolls():
+    with open('./JSON/poll.json', 'r') as f:
+        return json.load(f)
 
 # function for saving to poll.json
 def savePolls(poll):
@@ -231,40 +234,84 @@ class moderation(commands.Cog):
         # check if a poll in poll.json has the status of 'open'
         # if it does, then the bot will not create another poll
         # if it doesn't, then the bot will create a new poll
-        for poll_id in loadPolls:
-            for i in loadPolls[poll_id]:
-                if i['status'] == 'open':
-                    await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'There is already an open poll!'))
-                    return
-        embed = discord.Embed(title = 'Poll', description = question, color = discord.Color.purple())
-        msg = await ctx.send(embed = embed)
-        await msg.add_reaction('✅')
-        await msg.add_reaction('❌')
-        poll_id = str(msg.id)
-        loadPolls[poll_id] = [{'status': 'open', 'question': question,}]
-        savePolls(loadPolls)
+
+        def makePoll(question):
+            embed = discord.Embed(title = 'Poll', color = discord.Color.green())
+            embed.add_field(name = 'Question', value = question)
+            return embed
+        
+        loadPolls = _loadPolls()
+        msg = await ctx.send(embed = makePoll(question))
+        
+        try: 
+            latestPollID = loadPolls['latestPollID']
+        except:
+            latestPollID = 0
+        
+        if len(loadPolls) == 0:
+            loadPolls['latestPollID'] = msg.id
+            loadPolls[msg.id] = [{
+                'question': question,
+                'status': 'open',
+                'reactions': [],
+                'author': ctx.author.id,
+                'channel': ctx.channel.id
+            }]
+            savePolls(loadPolls)
+
+            await msg.add_reaction('✅')
+            await msg.add_reaction('❌')
+
+        elif loadPolls[str(latestPollID)][0]['status'] == 'open':
+                await msg.delete()
+                await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'A poll is already open!'))
+        else:
+            loadPolls['latestPollID'] = msg.id
+            loadPolls[msg.id] = [{
+                'question': question,
+                'status': 'open',
+                'reactions': [],
+                'author': ctx.author.id,
+                'channel': ctx.channel.id
+            }]
+            savePolls(loadPolls)
+            await msg.add_reaction('✅')
+            await msg.add_reaction('❌')
     
     # close poll and get total number of checks and crosses
     @commands.command(name = 'closepoll')
     @commands.has_role('new role1')
     async def closepoll(self, ctx):
-        for poll_id in loadPolls:
-            for i in loadPolls[poll_id]:
-                if i['status'] == 'open':
-                    i['status'] = 'closed'
-                    savePolls(loadPolls)
-                    msg = await ctx.fetch_message(int(poll_id))
-                    check_total = msg.reactions[0].count -1
-                    cross_total = msg.reactions[1].count - 1
+        loadPolls = _loadPolls()
 
-                    embed = discord.Embed(title = 'Poll', description = i['question'], color = discord.Color.purple())
-                    embed.add_field(name = 'Results', value = f'✅ {check_total} | ❌ {cross_total}')
-                    embed.set_footer(text = 'Poll has been closed!')
-                    await msg.edit(embed = embed)
-                    await ctx.send(embed = makeEmbed(discord.Color.green(), 'Success', 'Poll has been closed!\n\n Results: ' + f'✅: {check_total} ❌: {cross_total}'))
-                    return
+        try:
+            latestPollID = loadPolls['latestPollID']
+        except:
+            latestPollID = 0
         
-        await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'There is no open poll!'))
+        if len(loadPolls) == 0:
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'There is no poll to close!'))
+        elif loadPolls[str(latestPollID)][0]['status'] == 'closed':
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'There is no poll to close!'))
+        else:
+            loadPolls[str(latestPollID)][0]['status'] = 'closed'
+            savePolls(loadPolls)
+
+            # get total number of checks and crosses
+            getPoll = await ctx.fetch_message(latestPollID)
+            
+            for reaction in getPoll.reactions:
+                if reaction.emoji == '✅':
+                    checks = reaction.count - 1
+                elif reaction.emoji == '❌':
+                    crosses = reaction.count - 1
+
+            emebed = discord.Embed(title = 'Poll Results', color = discord.Color.green())
+            emebed.add_field(name = 'Question', value = loadPolls[str(latestPollID)][0]['question'], inline = False)
+            emebed.add_field(name = '✅', value = checks)
+            emebed.add_field(name = '❌', value = crosses)
+            emebed.add_field(name = 'Total', value = checks + crosses)
+            await ctx.send(embed = emebed)
 
     # say something
     @commands.command(name = 'say')
