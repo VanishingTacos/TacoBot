@@ -5,8 +5,6 @@
 #   available to server admins &  #
 #   mods!                         #
 #*********************************#
-
-from re import DEBUG
 import discord
 from discord import embeds
 from discord.ext import commands
@@ -14,8 +12,8 @@ import json
 import os
 import asyncio
 from datetime import datetime
-from config import *
 
+#=== warnings JSON functions ===#
 
 # check for warnings.json file
 if not os.path.exists('./JSON/warnings.json'):
@@ -31,12 +29,19 @@ def saveWarnings(warnings):
     with open('./JSON/warnings.json', 'w') as f:
         json.dump(warnings, f)
 
+#=== ban JSON functions ===#
+
+#check for bans.json file
+if not os.path.exists('./JSON/bans.json'):
+    with open('./JSON/bans.json', 'w') as f:
+        json.dump({}, f)
+
+#=== poll JSON functions ===#
+
 # check for poll.json file
 if not os.path.exists('./JSON/poll.json'):
     with open('./JSON/poll.json', 'w') as f:
         json.dump({}, f)
-
-# load poll.json
 
 #function to load poll.json
 def _loadPolls():
@@ -47,6 +52,8 @@ def _loadPolls():
 def savePolls(poll):
     with open('./JSON/poll.json', 'w') as f:
         json.dump(poll, f)
+        
+#===============================#
 
 # Get current time and date
 def getTime():
@@ -105,7 +112,7 @@ class moderation(commands.Cog):
         else:
             embed = discord.Embed(title = f'{username.name} warnings', color = discord.Color.red())
             for warning in loadWarnings[str(username.id)]:
-                embed.add_field(name = warning['time'], value = f'Warned by {self.bot.get_user(int(warning["warned_by"])).name}\n{warning["note"]}')
+                embed.add_field(name = warning['time'], value = f'Warned by {self.bot.get_user(int(warning["warned_by"])).name}\nReason: {warning["note"]}', inline = False)
                 embed.set_thumbnail(url = username.avatar_url)
             await ctx.send(embed = embed)
 
@@ -311,6 +318,7 @@ class moderation(commands.Cog):
             emebed.add_field(name = '✅', value = checks)
             emebed.add_field(name = '❌', value = crosses)
             emebed.add_field(name = 'Total', value = checks + crosses)
+            emebed.set_footer(text = f'Here is a jump link for the poll')
             await ctx.send(embed = emebed)
 
     # say something
@@ -380,8 +388,6 @@ class moderation(commands.Cog):
     async def listchannels(self, ctx):
         for channel in ctx.guild.channels:
             await ctx.send(f'{channel}')
-
-
 
 
 def setup(bot):

@@ -4,8 +4,6 @@ import asyncio
 import os
 import json
 from datetime import datetime
-from config import *
-
 
 # check for warnings.json file
 if not os.path.exists('./JSON/warnings.json'):
@@ -53,22 +51,6 @@ class events(commands.Cog):
             return
         else:
             await ctx.message.delete()
-
-    #spam filter
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-        
-        author_id = message.author.id
-        now = datetime.now()
-        author_msg_times.setdefault(author_id, []).append(now)
-        author_msg_times[author_id] = [x for x in author_msg_times[author_id] if (now - x).total_seconds() < time_window_milliseconds/1000]
-        if len(author_msg_times[author_id]) > max_msg_per_window:
-            await message.channel.send("Please slow down! You can only send 5 messages in 5 seconds!")
-            await asyncio.sleep(5)
-            await message.delete()
-            return
     
     #on_message_delete
     @commands.Cog.listener()
@@ -130,6 +112,10 @@ class events(commands.Cog):
 
         if len(author_msg_times[author_id]) > max_msg_per_window:
             await ctx.channel.send(embed = makeEmbed(0xFF0000, "Spam detected", "Please don't spam."))
+            # mute the user for 1 minute
+            await ctx.author.add_roles(discord.utils.get(ctx.guild.roles, name = 'muted'))
+            await asyncio.sleep(60)
+            await ctx.author.remove_roles(discord.utils.get(ctx.guild.roles, name = 'muted'))
 
     #on memeber leave and send message to log channel
     @commands.Cog.listener()
@@ -137,9 +123,5 @@ class events(commands.Cog):
         embed = makeEmbed(0xFF0000, "Member Left", f"{member.name}#{member.discriminator} has left the server at {getTime()}")
         await self.bot.get_channel(logChannel).send(embed = embed)
             
-
-
-
-
 def setup(bot):
     bot.add_cog(events(bot))

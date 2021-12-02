@@ -1,7 +1,9 @@
 import discord
 from discord.ext import commands
 import os
-from config import *
+
+TOKEN = os.environ.get('DISCORD_TOKEN')
+logChannel = os.environ.get('LOG_CHANNEL')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -38,4 +40,5 @@ for filename in os.listdir('./cogs'):
 
         bot.load_extension(f'cogs.{filename[:-3]}')
 
-bot.run(KEY)
+#get the token enviroment variable
+bot.run(os.environ.get(TOKEN))
