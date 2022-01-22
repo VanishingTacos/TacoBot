@@ -38,7 +38,7 @@ async def reload(ctx, extenstion=None):
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
 
-        bot.load_extension(f'cogs.{filename[:-3]}')
+         bot.load_extension(f'cogs.{filename[:-3]}')
 
-#get the token enviroment variable
-bot.run(os.environ.get(TOKEN))
+
+bot.run(TOKEN)

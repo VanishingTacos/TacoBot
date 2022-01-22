@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from config import *
 
 class _help(commands.Cog):
 

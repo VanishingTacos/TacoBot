@@ -5,6 +5,8 @@ import os
 import json
 from datetime import datetime
 
+logChannel = os.environ.get('LOG_CHANNEL')
+
 # check for warnings.json file
 if not os.path.exists('./JSON/warnings.json'):
     with open('./JSON/warnings.json', 'w') as f:
@@ -42,7 +44,7 @@ class events(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('Success! We have logged in as {0.user}'.format(self.bot))
-        await self.bot.change_presence(activity=discord.Game('Looking for Tacos'))
+        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=".help"))
     
     #delete command message after its executed
     @commands.Cog.listener()
@@ -59,24 +61,26 @@ class events(commands.Cog):
             return
         if message.author.id == self.bot.user.id:
             return
-        if message.channel.id == 915101965820784661:
+        if message.channel.id == int(logChannel):
             return
         if message.content.startswith('.'):
             return
         embed = makeEmbed(0xFF0000, "Message Deleted", f"{message.author.name}'s message was deleted in {message.channel.mention} at {getTime()} \n\n Message:\n```{message.content}```")
-        await self.bot.get_channel(915101965820784661).send(embed = embed)
+        await self.bot.get_channel(int(logChannel)).send(embed = embed)
     
     #on_message_edit
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        if before.author.bot:
+        if after.author.bot:
             return
-        if before.author.id == self.bot.user.id:
+        if after.author.id == self.bot.user.id:
             return
-        if before.channel.id == logChannel:
+        if after.channel.id == 915101965820784661:
             return
-        embed = makeEmbed(0xFF0000, "Message Edited", f"{before.author.name}'s message was edited in {before.channel.mention} at {getTime()} \n\n Before:\n``` {before.content}``` \n\n After:\n```{after.content}```")
-        await self.bot.get_channel(logChannel).send(embed = embed)
+        if after.content.startswith('.'):
+            return
+        embed = makeEmbed(0xFF0000, "Message Edited", f"{after.author.name}'s message was edited in {after.channel.mention} at {getTime()} \n\n Before:\n```{before.content}```\n\n After:\n```{after.content}```")
+        await self.bot.get_channel(915101965820784661).send(embed = embed)
 
     #spam prevention
     #https://stackoverflow.com/a/64961500
