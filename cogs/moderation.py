@@ -6,7 +6,7 @@
 #   mods!                         #
 #*********************************#
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import json
 import os
 import asyncio
@@ -58,6 +58,9 @@ def _loadPolls():
 def savePolls(poll):
     with open('./JSON/poll.json', 'w') as f:
         json.dump(poll, f)
+    
+
+
         
 #===============================#
 
@@ -75,6 +78,10 @@ class moderation(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.scheduledMessage.start()
+
+    def cog_unload(self):
+        self().scheduledMessage.cancel()
     
     
     # enable / disable slowmoade for x seconds
@@ -432,7 +439,7 @@ class moderation(commands.Cog):
         await channel.delete()
         await ctx.send(embed =  makeEmbed(discord.Color.red(), 'Channel Deleted', f'{channel} has been deleted'))
     
-    #list channels
+    # list channels
     @commands.command(name = 'listchannels')
     @commands.has_role('new role1')
     async def listchannels(self, ctx):
@@ -454,6 +461,72 @@ class moderation(commands.Cog):
         channel = discord.utils.get(ctx.guild.channels, name = channel)
         await channel.set_permissions(ctx.guild.default_role, send_messages = True)
         await ctx.send(embed = makeEmbed(discord.Color.green(), 'Channel Unlocked', f'{channel} has been unlocked'))
+
+    # create a scheduled message
+    @commands.command(name = 'schedule')
+    @commands.has_role('new role1')
+    async def schedule(self, ctx, date, time, *, message):
+        await ctx.send(embed = makeEmbed(discord.Color.green(), 'Scheduled Message', f'{message} will be sent on {date} at {time}'))
+
+        # check for scheduled.json
+        if not os.path.exists('./JSON/scheduled.json'):
+            with open('./JSON/scheduled.json', 'w') as f:
+                json.dump({}, f)
+        
+        # save the scheduled message to schedule.json
+        with open('./JSON/scheduled.json', 'r') as f:
+            loadSchedule = json.load(f)
+
+        loadSchedule[str(ctx.channel.id)] = {
+            'message' : message,
+            'date' : date,
+            'time' : time
+        }
+
+        with open('./JSON/scheduled.json', 'w') as f:
+            json.dump(loadSchedule, f)
+
+
+    # list scheduled messages
+    @commands.command(name = 'listscheduled')
+    @commands.has_role('new role1')
+    async def listscheduled(self, ctx):
+        if not os.path.exists('./JSON/scheduled.json'):
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'There are no scheduled messages'))
+        
+        else:
+            with open('./JSON/scheduled.json', 'r') as f:
+                loadSchedule = json.load(f)
+
+            for key, value in loadSchedule.items():
+                await ctx.send(embed = makeEmbed(discord.Color.green(), 'Scheduled Message', f'{value["message"]} will be sent on {value["date"]} at {value["time"]}'))
+
+    # send scheduled message
+    @tasks.loop(seconds = 1)
+    async def scheduledMessage(self):
+        if not os.path.exists('./JSON/scheduled.json'):
+            return
+        
+        else:
+            with open('./JSON/scheduled.json', 'r') as f:
+                loadSchedule = json.load(f)
+
+            for key, value in loadSchedule.items():
+                if value['date'] == datetime.now().strftime('%m/%d/%Y') and value['time'] == datetime.now().strftime('%H:%M'):
+                    print('message sent')
+                    await self.bot.get_channel(int(key)).send(embed = makeEmbed(discord.Color.green(), 'Scheduled Message', f'{value["message"]}'))
+
+                    loadSchedule.pop(key)
+                    with open('./JSON/scheduled.json', 'w') as f:
+                        json.dump(loadSchedule, f)
+                    break
+
+    
+    # wait for bot to be ready and then start scheduledMessage
+    @scheduledMessage.before_loop
+    async def before_scheduledMessage(self):
+        await self.bot.wait_until_ready()
+
 
 def setup(bot):
     bot.add_cog(moderation(bot))
