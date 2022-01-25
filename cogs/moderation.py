@@ -466,6 +466,31 @@ class moderation(commands.Cog):
     @commands.command(name = 'schedule')
     @commands.has_role('new role1')
     async def schedule(self, ctx, date, time, *, message):
+
+        # check if date is valid
+        try:
+            datetime.strptime(date, '%m/%d/%Y')
+        except ValueError:
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'Please enter a valid date'))
+            return
+        
+        # check if time is valid
+        try:
+            datetime.strptime(time, '%H:%M')
+        except ValueError:
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'Please enter a valid time'))
+            return
+        
+        # check if date is in the future
+        if date < datetime.now().date().strftime('%m-%d-%Y'):
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'Please enter a date in the future'))
+            return
+        
+        # check if time is in the future
+        if time < datetime.now().time().strftime('%H:%M'):
+            await ctx.send(embed = makeEmbed(discord.Color.red(), 'Error', 'Please enter a time in the future'))
+            return
+        
         await ctx.send(embed = makeEmbed(discord.Color.green(), 'Scheduled Message', f'{message} will be sent on {date} at {time}'))
 
         # check for scheduled.json
