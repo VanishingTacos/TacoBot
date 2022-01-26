@@ -36,7 +36,7 @@ async def reload(ctx, extenstion=None):
 
 
 for filename in os.listdir('./cogs'):
-    if filename.endswith('.py'):
+    if filename.endswith('.py') and filename != 'test.py':
 
          bot.load_extension(f'cogs.{filename[:-3]}')
 

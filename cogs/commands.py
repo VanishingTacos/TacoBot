@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import asyncio
 import datetime
 import pytz
 
@@ -93,6 +92,8 @@ class _commands(commands.Cog):
     async def timezones(self, ctx):
         timezone = pytz.common_timezones
         print(timezone)
+
+
 
 
 def setup(bot):
