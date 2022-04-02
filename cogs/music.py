@@ -4,16 +4,12 @@ This is compressed into one file.
 """
 
 import asyncio
-import datetime
 import youtube_dl
 import pafy
 import discord
 from discord.ext import commands
-
-intents = discord.Intents.default()
-intents.members = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
+from StringProgressBar import progressBar
+import datetime
 
 class Player(commands.Cog):
     def __init__(self, bot):
@@ -33,6 +29,7 @@ class Player(commands.Cog):
 
     async def search_song(self, amount, song, get_url=False):
         info = await self.bot.loop.run_in_executor(None, lambda: youtube_dl.YoutubeDL({"format" : "bestaudio", "quiet" : True}).extract_info(f"ytsearch{amount}:{song}", download=False, ie_key="YoutubeSearch"))
+
         if len(info["entries"]) == 0: return None
 
         return [entry["webpage_url"] for entry in info["entries"]] if get_url else info
@@ -41,6 +38,17 @@ class Player(commands.Cog):
         url = pafy.new(song).getbestaudio().url
         ctx.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(url)), after=lambda error: self.bot.loop.create_task(self.check_queue(ctx)))
         ctx.voice_client.source.volume = 0.5
+
+        global starttime
+        starttime = datetime.datetime.utcnow()
+
+        global duration
+        duration = pafy.new(song).duration
+
+    async def converttoseconds(self, time):
+        seconds = (sum([a*b for a,b in zip([3600, 60, 1], map(int, time.split(":")))]) - 1)
+        return seconds
+       
 
     @commands.command()
     async def join(self, ctx):
@@ -123,11 +131,11 @@ class Player(commands.Cog):
         embed.set_footer(text=f"Displaying the first {amount} results.")
         msg = await ctx.send(embed=embed)
         # add reactions to the embed
-        await msg.add_reaction("1️⃣")
-        await msg.add_reaction("2️⃣")
-        await msg.add_reaction("3️⃣")
-        await msg.add_reaction("4️⃣")
-        await msg.add_reaction("5️⃣")
+        await msg.add_reaction(u"1\ufe0f\u20e3")
+        await msg.add_reaction(u"2\ufe0f\u20e3")
+        await msg.add_reaction(u"3\ufe0f\u20e3")
+        await msg.add_reaction(u"4\ufe0f\u20e3")
+        await msg.add_reaction(u"5\ufe0f\u20e3")
 
         #check if the user reacted to the message and if so, play the song they selected
         def check(reaction, user):
@@ -138,19 +146,19 @@ class Player(commands.Cog):
         except asyncio.TimeoutError:
             return await ctx.send("Sorry, you took too long to react to the message.")
 
-        if reaction.emoji == "1️⃣":
+        if reaction.emoji == u"1\ufe0f\u20e3":
             url = info["entries"][0]["webpage_url"]
             name = info["entries"][0]["title"]
-        elif reaction.emoji == "2️⃣":
+        elif reaction.emoji == u"2\ufe0f\u20e3":
             url = info["entries"][1]["webpage_url"]
             name = info["entries"][1]["title"]
-        elif reaction.emoji == "3️⃣":
+        elif reaction.emoji == u"3\ufe0f\u20e3":
             url = info["entries"][2]["webpage_url"]
             name = info["entries"][2]["title"]
-        elif reaction.emoji == "4️⃣":
+        elif reaction.emoji == u"4\ufe0f\u20e3":
             url = info["entries"][3]["webpage_url"]
             name = info["entries"][3]["title"]
-        elif reaction.emoji == "5️⃣":
+        elif reaction.emoji == u"5\ufe0f\u20e3":
             url = info["entries"][4]["webpage_url"]
             name = info["entries"][4]["title"]
 
@@ -171,8 +179,18 @@ class Player(commands.Cog):
             else:
                 return await ctx.send("Sorry, I can only queue up to 10 songs, please wait for the current song to finish.")
         else:
+
+
             await self.play_song(ctx, url)
-            await ctx.send(f"Now playing: {name}")
+            song_name = pafy.new(url).title
+            embed = discord.Embed(title="Now Playing", description=song_name, color=0x00ff00)
+            embed.add_field(name="Duration", value=pafy.new(url).duration)
+            embed.add_field(name="Likes", value=pafy.new(url).likes)
+            embed.add_field(name="Views", value=pafy.new(url).viewcount)
+            embed.add_field(name="Uploader", value=pafy.new(url).author)
+            embed.add_field(name="URL", value = '[Click here](%s)' % song)
+            embed.set_thumbnail(url=pafy.new(url).thumb)
+            await ctx.send(embed=embed)
 
         
     @commands.command()
@@ -245,7 +263,18 @@ class Player(commands.Cog):
         if skip:
             ctx.voice_client.stop()
 
+    #stop the bot from playing music
+    @commands.command()
+    async def stop(self, ctx):
+        if ctx.voice_client is None:
+            return await ctx.send("I am not playing any song.")
 
+        if ctx.voice_client.source is not None:
+            ctx.voice_client.stop()
+            return await ctx.send("Stopping the current song.")
+        else:
+            return await ctx.send("I am not currently playing any songs.")
+    
     @commands.command()
     async def pause(self, ctx):
         if ctx.voice_client.is_paused():
@@ -276,6 +305,38 @@ class Player(commands.Cog):
 
         await ctx.send(f"Now playing: {ctx.voice_client.source.title}")
 
+    # volume command
+    @commands.command()
+    async def volume(self, ctx, volume: int):
+        if ctx.voice_client is None:
+            return await ctx.send("I am not connected to a voice channel.")
+
+        if volume < 0 or volume > 100:
+            return await ctx.send("Volume must be between 0 and 100.")
+
+        ctx.voice_client.source.volume = volume / 100
+        await ctx.send(f"Volume set to {volume}%.")
+
+    # view the current volume
+    @commands.command()
+    async def  volumeview(self, ctx):
+        if ctx.voice_client is None:
+            return await ctx.send("I am not connected to a voice channel.")
+
+        await ctx.send(f"The current volume is {ctx.voice_client.source.volume * 100}%.")
+
+    # progress of the song
+    @commands.command()
+    async def progress(self, ctx):
+        if ctx.voice_client.source is None:
+            return await ctx.send("I am not playing any song.")
+        uptime = datetime.datetime.utcnow() - starttime
+        time = str(uptime).split(".")[0]
+        timeseconds = await self.converttoseconds(time)
+        durationseconds = await self.converttoseconds(duration)
+        bardata = progressBar.splitBar(int(durationseconds), int(timeseconds), size=20)
+        embed = discord.Embed(title="Progress", description=f"{time} {bardata[0]} {duration}", colour=discord.Colour.blue())
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Player(bot))
