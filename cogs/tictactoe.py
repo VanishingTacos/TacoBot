@@ -144,5 +144,5 @@ class tictactoe(commands.Cog):
 
 
 
-def setup(commands):
-    commands.add_cog(tictactoe(commands))
+async def setup(commands):
+    await commands.add_cog(tictactoe(commands))

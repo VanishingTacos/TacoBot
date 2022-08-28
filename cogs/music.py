@@ -338,6 +338,6 @@ class Player(commands.Cog):
         embed = discord.Embed(title="Progress", description=f"{time} {bardata[0]} {duration}", colour=discord.Colour.blue())
         await ctx.send(embed=embed)
 
-def setup(bot):
-    bot.add_cog(Player(bot))
+async def setup(bot):
+    await bot.add_cog(Player(bot))
     

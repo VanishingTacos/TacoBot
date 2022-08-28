@@ -1,23 +1,27 @@
 import discord
 from discord.ext import commands
 import os
+import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TOKEN = os.environ.get('DISCORD_TOKEN')
 logChannel = os.environ.get('LOG_CHANNEL')
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 bot = commands.Bot(intents=intents, command_prefix='.')
 bot.remove_command('help')
 
 @bot.command()
 async def load(ctx, extenstion):
-    bot.load_extension(f'cogs.{extenstion}')
+    await bot.load_extension(f'cogs.{extenstion}')
     await ctx.send('Extenstion has been loaded')
 
 @bot.command()
 async def unload(ctx, extenstion):
-    bot.unload_extension(f'cogs.{extenstion}')
+    await bot.unload_extension(f'cogs.{extenstion}')
     await ctx.send('Extenstion has been unloaded')
 
 #reload all cogs or a specific cog
@@ -26,8 +30,8 @@ async def reload(ctx, extenstion=None):
     if extenstion == None:
         for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
-                bot.unload_extension(f'cogs.{filename[:-3]}')
-                bot.load_extension(f'cogs.{filename[:-3]}')
+                await bot.unload_extension(f'cogs.{filename[:-3]}')
+                await bot.load_extension(f'cogs.{filename[:-3]}')
         await ctx.send('All cogs have been reloaded')
     else:
         bot.unload_extension(f'cogs.{extenstion}')
@@ -35,10 +39,17 @@ async def reload(ctx, extenstion=None):
         await ctx.send('Extenstion has been reloaded')
 
 
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py') and filename != 'test.py':
+async def load_extenstions():
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py') and filename != 'test.py':
 
-         bot.load_extension(f'cogs.{filename[:-3]}')
+            await bot.load_extension(f'cogs.{filename[:-3]}')
 
 
-bot.run(TOKEN)
+
+async def main():
+    async with bot:
+        await load_extenstions()
+        await bot.start(TOKEN)
+
+asyncio.run(main())

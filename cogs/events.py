@@ -127,5 +127,5 @@ class events(commands.Cog):
         embed = makeEmbed(0xFF0000, "Member Left", f"{member.name}#{member.discriminator} has left the server at {getTime()}")
         await self.bot.get_channel(logChannel).send(embed = embed)
             
-def setup(bot):
-    bot.add_cog(events(bot))
+async def setup(bot):
+    await bot.add_cog(events(bot))

@@ -8,7 +8,7 @@ def makeembed(title, description, color, thumbnail = None):
         embed.set_thumbnail(url=thumbnail)
     return embed
 
-class tictactoe(commands.Cog):
+class _games(commands.Cog):
 
     def __init__(self, commands):
         self.commands = commands
@@ -68,5 +68,5 @@ class tictactoe(commands.Cog):
 
 
 
-def setup(commands):
-    commands.add_cog(tictactoe(commands))
+async def setup(commands):
+    await commands.add_cog(_games(commands))
