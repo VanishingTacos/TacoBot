@@ -277,8 +277,11 @@ class moderation(commands.Cog):
         embed.add_field(name = 'Joined At', value = username.joined_at)
         embed.add_field(name = 'Created At', value = username.created_at)
         embed.add_field(name = 'Top Role', value = username.top_role)
-        embed.set_thumbnail(url = username.avatar_url)
-        embed.set_footer(text = f'Requested by {ctx.author.name}', icon_url = ctx.author.avatar_url)
+        if username.avatar:
+            embed.set_thumbnail(url = username.avatar)
+        else:
+            embed.set_thumbnail(url= username.default_avatar)
+        embed.set_footer(text = f'Requested by {ctx.author.name}', icon_url = ctx.author.avatar.url)
         await ctx.send(embed=embed)
     
     # create poll
