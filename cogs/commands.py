@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ui import Button, View
 import datetime
 import pytz
 
@@ -92,6 +93,26 @@ class _commands(commands.Cog):
     async def timezones(self, ctx):
         timezone = pytz.common_timezones
         print(timezone)
+
+    #testing buttons
+    @commands.command()
+    async def hello(sef, ctx):
+        button1 = Button(style=discord.ButtonStyle.green, emoji="👋")
+        button2 = Button(style=discord.ButtonStyle.red, emoji="👎")
+
+        async def button_callback1(interaction):
+            await interaction.response.send_message("Hello!")
+        async def button_callback2(interaction):
+            await interaction.response.send_message("Goodbye")
+        
+        button1.callback = button_callback1
+        button2.callback = button_callback2
+
+        view = View()
+        view.add_item(button1)
+        view.add_item(button2)
+        await ctx.send("Hi", view=view)
+
 
 
 

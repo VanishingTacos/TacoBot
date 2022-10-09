@@ -8,8 +8,10 @@ import youtube_dl
 import pafy
 import discord
 from discord.ext import commands
+from discord.ui import Button, View, Select
 from StringProgressBar import progressBar
 import datetime
+import time
 
 class Player(commands.Cog):
     def __init__(self, bot):
@@ -121,76 +123,55 @@ class Player(commands.Cog):
 
         info = await self.search_song(5, song)
 
-        embed = discord.Embed(title=f"Results for '{song}':", description="*Use the reactions to select the song.*\n", colour=discord.Colour.red())
-        
-        amount = 0
+        options = []
+        song_info = []
         for entry in info["entries"]:
-            embed.description += f"{amount+1}. [{entry['title']}]({entry['webpage_url']})\n"
-            amount += 1
-
-        embed.set_footer(text=f"Displaying the first {amount} results.")
-        msg = await ctx.send(embed=embed)
-        # add reactions to the embed
-        await msg.add_reaction(u"1\ufe0f\u20e3")
-        await msg.add_reaction(u"2\ufe0f\u20e3")
-        await msg.add_reaction(u"3\ufe0f\u20e3")
-        await msg.add_reaction(u"4\ufe0f\u20e3")
-        await msg.add_reaction(u"5\ufe0f\u20e3")
-
-        #check if the user reacted to the message and if so, play the song they selected
-        def check(reaction, user):
-            return user == ctx.author and reaction.message.id == msg.id
+             options.append(discord.SelectOption(label=entry["title"]))
+             song_info.append([entry["title"], entry["webpage_url"]])
+        select = Select(placeholder="Pick a song",options=options)
         
-        try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
-        except asyncio.TimeoutError:
-            return await ctx.send("Sorry, you took too long to react to the message.")
-
-        if reaction.emoji == u"1\ufe0f\u20e3":
-            url = info["entries"][0]["webpage_url"]
-            name = info["entries"][0]["title"]
-        elif reaction.emoji == u"2\ufe0f\u20e3":
-            url = info["entries"][1]["webpage_url"]
-            name = info["entries"][1]["title"]
-        elif reaction.emoji == u"3\ufe0f\u20e3":
-            url = info["entries"][2]["webpage_url"]
-            name = info["entries"][2]["title"]
-        elif reaction.emoji == u"4\ufe0f\u20e3":
-            url = info["entries"][3]["webpage_url"]
-            name = info["entries"][3]["title"]
-        elif reaction.emoji == u"5\ufe0f\u20e3":
-            url = info["entries"][4]["webpage_url"]
-            name = info["entries"][4]["title"]
-
-
-        if ctx.voice_client.source is not None:
-            try:
-                queue_len = len(self.song_queue[ctx.guild.id])
-            except:
-                queue_len = 0
-
-            if queue_len < 10:
+        async def my_callback(interaction):
+            for i in song_info:
+                if i[0] == select.values[0]:
+                    url = i[1]
+            if ctx.voice_client.source is not None:
                 try:
-                 self.song_queue[ctx.guild.id].append(url)
+                    queue_len = len(self.song_queue[ctx.guild.id])
                 except:
-                    self.song_queue[ctx.guild.id] = [url]
-                return await ctx.send(f"I am currently playing a song, this song has been added to the queue at position: {queue_len+1}.")
+                    queue_len = 0
 
+                if queue_len < 10:
+                    try:
+                        self.song_queue[ctx.guild.id].append(url)
+                    except:
+                        self.song_queue[ctx.guild.id] = [url]
+                    return await interaction.response.send_message(f"I am currently playing a song, this song has been added to the queue at position: {queue_len+1}.")
+
+                else:
+                    return await interaction.response.send_message("Sorry, I can only queue up to 10 songs, please wait for the current song to finish.")
             else:
-                return await ctx.send("Sorry, I can only queue up to 10 songs, please wait for the current song to finish.")
-        else:
+                await interaction.response.defer(ephemeral = True)
+                start = time.time()
+                await self.play_song(ctx, url)
+                video_to_pafy = pafy.new(url)
+                title = video_to_pafy.title
+                embed = discord.Embed(title="Now Playing", description=title, color=0x00ff00)
+                embed.add_field(name="Duration", value=video_to_pafy.duration)
+                embed.add_field(name="Likes", value= video_to_pafy.likes)
+                embed.add_field(name="Views", value= video_to_pafy.viewcount)
+                embed.add_field(name="Uploader", value= video_to_pafy.author)
+                embed.add_field(name="URL", value = '[Click here](%s)' % url)
+                embed.set_thumbnail(url= video_to_pafy.thumb)
+                end = time.time()
+                print(end - start)
+                await interaction.followup.send(embed=embed)
+                print('debug')
 
+        select.callback = my_callback
+        view = View()
+        view.add_item(select)
 
-            await self.play_song(ctx, url)
-            song_name = pafy.new(url).title
-            embed = discord.Embed(title="Now Playing", description=song_name, color=0x00ff00)
-            embed.add_field(name="Duration", value=pafy.new(url).duration)
-            embed.add_field(name="Likes", value=pafy.new(url).likes)
-            embed.add_field(name="Views", value=pafy.new(url).viewcount)
-            embed.add_field(name="Uploader", value=pafy.new(url).author)
-            embed.add_field(name="URL", value = '[Click here](%s)' % song)
-            embed.set_thumbnail(url=pafy.new(url).thumb)
-            await ctx.send(embed=embed)
+        await ctx.send(view=view)
 
         
     @commands.command()

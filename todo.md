@@ -1,0 +1,6 @@
+- [ ] Voice call recording
+- [ ] Notifications for lives on Twitch/YouTube
+- [ ] New video notifications for YouTube
+- [ ] Internet wide search (YouTube, Google, Etc)
+- [ ] Schduled messages
+- [ ] Memeber counter
