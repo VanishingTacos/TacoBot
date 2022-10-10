@@ -12,3 +12,4 @@ This project is still in ***HEAVY*** development!
 - [ ] Internet wide search (YouTube, Google, Etc)
 - [ ] Schduled messages
 - [ ] Memeber counter
+- [ ] Settings web app
