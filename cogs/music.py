@@ -11,7 +11,6 @@ from discord.ext import commands
 from discord.ui import Button, View, Select
 from StringProgressBar import progressBar
 import datetime
-import time
 
 class Player(commands.Cog):
     def __init__(self, bot):
@@ -151,7 +150,6 @@ class Player(commands.Cog):
                     return await interaction.response.send_message("Sorry, I can only queue up to 10 songs, please wait for the current song to finish.")
             else:
                 await interaction.response.defer(ephemeral = True)
-                start = time.time()
                 await self.play_song(ctx, url)
                 video_to_pafy = pafy.new(url)
                 title = video_to_pafy.title
@@ -162,10 +160,7 @@ class Player(commands.Cog):
                 embed.add_field(name="Uploader", value= video_to_pafy.author)
                 embed.add_field(name="URL", value = '[Click here](%s)' % url)
                 embed.set_thumbnail(url= video_to_pafy.thumb)
-                end = time.time()
-                print(end - start)
                 await interaction.followup.send(embed=embed)
-                print('debug')
 
         select.callback = my_callback
         view = View()
