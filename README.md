@@ -6,9 +6,10 @@ TacoBot is Discord moderation bot that has tons of commands for helping admins a
 This project is still in ***HEAVY*** development!
 
 ## Todo
-- [ ] Voice call recording
-- [ ] Notifications for lives on Twitch/YouTube
+- [ ] ~~Voice call recording~~
+- [ ] Notifications for lives on Twitch/YouTube - in progress
 - [ ] New video notifications for YouTube
 - [ ] Internet wide search (YouTube, Google, Etc)
 - [ ] Schduled messages
 - [ ] Memeber counter
+- [ ]  Settings web app
