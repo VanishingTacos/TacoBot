@@ -5,6 +5,33 @@ TacoBot is Discord moderation bot that has tons of commands for helping admins a
 ## Notice
 This project is still in ***HEAVY*** development!
 
+## Current Feture List
+- Set slowmode
+- User warning system
+- Kick memebers
+- Ban/unban memebers
+- Purge member specifc messages
+- Purge messages
+- Purge 
+- Mute members
+- Temperaly mute memebers
+- Give/remove nickname
+- Get member information (username, account create date, join server date, etc)
+- Polling system
+- Create/remove roles
+- Create/remove channels
+- Lock/unlock down channel
+- Spam detection
+- Message edit/delete log
+- Member leave log
+- Search and play songs from YouTube
+- Get server infomation
+- Get bot infomation
+- create invite link
+- Convert time from one timezone to another
+
+
+
 ## Todo
 - [ ] ~~Voice call recording~~
 - [ ] Notifications for lives on Twitch/YouTube - in progress
