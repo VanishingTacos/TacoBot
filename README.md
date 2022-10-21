@@ -33,10 +33,10 @@ This project is still in ***HEAVY*** development!
 
 
 ## Todo
-- [ ] ~~Voice call recording~~
-- [ ] Notifications for lives on Twitch/YouTube - in progress
-- [ ] New video notifications for YouTube
+- [ ] Notifications for lives on Twitch/YouTube
+    - [x] Twitch
+    - [ ] YouTube - in progress 
 - [ ] Internet wide search (YouTube, Google, Etc)
 - [ ] Schduled messages
 - [ ] Memeber counter
-- [ ]  Settings web app
+- [ ] Settings web app
