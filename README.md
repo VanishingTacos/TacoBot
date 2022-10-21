@@ -33,7 +33,7 @@ This project is still in ***HEAVY*** development!
 
 
 ## Todo
-- [ ] Notifications for lives on Twitch/YouTube
+- [ ] Notifications for Twitch/YouTube
     - [x] Twitch
     - [ ] YouTube - in progress 
 - [ ] Internet wide search (YouTube, Google, Etc)
