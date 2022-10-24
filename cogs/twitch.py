@@ -1,16 +1,11 @@
 import json
-from tabnanny import check
-from turtle import width
 import discord
 from discord.ext import commands, tasks
-from matplotlib.image import thumbnail
-from matplotlib.pyplot import get
 from twitchAPI.twitch import Twitch
 import os
 from dotenv import load_dotenv
 import requests
 from pprint import pprint
-import traceback
 
 load_dotenv()
 
@@ -128,7 +123,6 @@ class twitch(commands.Cog):
     @tasks.loop(seconds=5)
     async def live_notifs_loop(self):
         get_embed = checkuser('vanishingtacos')
-        print(get_embed)
 
         if not get_embed:
             pass
