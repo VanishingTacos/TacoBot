@@ -12,7 +12,6 @@ This project is still in ***HEAVY*** development!
 - Ban/unban memebers
 - Purge member specifc messages
 - Purge messages
-- Purge 
 - Mute members
 - Temperaly mute memebers
 - Give/remove nickname
