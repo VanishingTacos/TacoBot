@@ -1,4 +1,4 @@
 .env
-/cogs/__pycache__
-/__pycache__
-/JSON/*.json
+JSON/*.json
+*__pycache__
+cogs/test.py

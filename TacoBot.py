@@ -14,42 +14,44 @@ intents.members = True
 bot = commands.Bot(intents=intents, command_prefix='.')
 bot.remove_command('help')
 
-@bot.command()
-async def load(ctx, extenstion):
-    await bot.load_extension(f'cogs.{extenstion}')
-    await ctx.send('Extenstion has been loaded')
 
 @bot.command()
-async def unload(ctx, extenstion):
-    await bot.unload_extension(f'cogs.{extenstion}')
-    await ctx.send('Extenstion has been unloaded')
+async def load(ctx, extension):
+    await bot.load_extension(f'cogs.{extension}')
+    await ctx.send('Extension has been loaded')
 
-#reload all cogs or a specific cog
+
 @bot.command()
-async def reload(ctx, extenstion=None):
-    if extenstion == None:
+async def unload(ctx, extension):
+    await bot.unload_extension(f'cogs.{extension}')
+    await ctx.send('Extension has been unloaded')
+
+
+# reload all cogs or a specific cog
+@bot.command()
+async def reload(ctx, extension=None):
+    if extension is None:
         for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
                 await bot.unload_extension(f'cogs.{filename[:-3]}')
                 await bot.load_extension(f'cogs.{filename[:-3]}')
         await ctx.send('All cogs have been reloaded')
     else:
-        bot.unload_extension(f'cogs.{extenstion}')
-        bot.load_extension(f'cogs.{extenstion}')
-        await ctx.send('Extenstion has been reloaded')
+        await bot.unload_extension(f'cogs.{extension}')
+        await bot.load_extension(f'cogs.{extension}')
+        await ctx.send('Extension has been reloaded')
 
 
-async def load_extenstions():
+async def load_extensions():
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
-
             await bot.load_extension(f'cogs.{filename[:-3]}')
-
 
 
 async def main():
     async with bot:
-        await load_extenstions()
+        await load_extensions()
         await bot.start(TOKEN)
+
 
 asyncio.run(main())

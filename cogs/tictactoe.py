@@ -25,11 +25,11 @@ winningConditions = [
 ]
 
 
-class tictactoe(commands.Cog):
+class Tictactoe(commands.Cog):
 
-    def __init__(self, commands):
-        self.commands = commands
-    
+    def __init__(self, bot):
+        self.commands = bot
+
     @commands.command()
     async def tictactoe(self, ctx, p1: discord.Member, p2: discord.Member):
         global count
@@ -41,8 +41,8 @@ class tictactoe(commands.Cog):
         if gameOver:
             global board
             board = [":white_large_square:", ":white_large_square:", ":white_large_square:",
-                    ":white_large_square:", ":white_large_square:", ":white_large_square:",
-                    ":white_large_square:", ":white_large_square:", ":white_large_square:"]
+                     ":white_large_square:", ":white_large_square:", ":white_large_square:",
+                     ":white_large_square:", ":white_large_square:", ":white_large_square:"]
             turn = ""
             gameOver = False
             count = 0
@@ -87,7 +87,7 @@ class tictactoe(commands.Cog):
                     mark = ":regional_indicator_x:"
                 elif turn == player2:
                     mark = ":o2:"
-                if 0 < pos < 10 and board[pos - 1] == ":white_large_square:" :
+                if 0 < pos < 10 and board[pos - 1] == ":white_large_square:":
                     board[pos - 1] = mark
                     count += 1
 
@@ -101,15 +101,15 @@ class tictactoe(commands.Cog):
                         else:
                             line += " " + board[x]
 
-                    
-                    def checkWinner(winningConditions, mark):
+                    def check_winner(winning_conditions, mark):
                         global gameOver
-                        for condition in winningConditions:
-                            if board[condition[0]] == mark and board[condition[1]] == mark and board[condition[2]] == mark:
+                        for condition in winning_conditions:
+                            if board[condition[0]] == mark and board[condition[1]] == mark and board[
+                                condition[2]] == mark:
                                 gameOver = True
 
-                    checkWinner(winningConditions, mark)
-                    if gameOver == True:
+                    check_winner(winningConditions, mark)
+                    if gameOver:
                         await ctx.send(mark + " wins!")
                     elif count >= 9:
                         gameOver = True
@@ -143,6 +143,5 @@ class tictactoe(commands.Cog):
             await ctx.send("Please make sure to enter an integer.")
 
 
-
-async def setup(commands):
-    await commands.add_cog(tictactoe(commands))
+async def setup(bot):
+    await bot.add_cog(Tictactoe(bot))

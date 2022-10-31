@@ -7,54 +7,44 @@ from datetime import datetime
 
 logChannel = os.environ.get('LOG_CHANNEL')
 
-# check for warnings.json file
-if not os.path.exists('./JSON/warnings.json'):
-    with open('./JSON/warnings.json', 'w') as f:
-        json.dump({}, f)
-
-#load warnings.json
-with open('./JSON/warnings.json', 'r') as f:
-    loadWarnings = json.load(f)
-
-# function for saving to warnings.json
-def saveWarnings(warnings):
-    with open('./JSON/warnings.json', 'w') as f:
-        json.dump(warnings, f)
 
 # Get current time and date
-def getTime():
+def get_time():
     return datetime.now().strftime('%m/%d/%y %I:%M:%S %p')
 
+
 # make embed
-def makeEmbed(color, name, value):
-    embed = discord.Embed(color = color)
-    embed.add_field(name = name, value = value)
+def make_embed(color, name, value):
+    embed = discord.Embed(color=color)
+    embed.add_field(name=name, value=value)
     return embed
 
-#spam filter settings
+
+# spam filter settings
 time_window_milliseconds = 5000
 max_msg_per_window = 5
 author_msg_times = {}
 
-class events(commands.Cog):
+
+class Events(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-    
+
     @commands.Cog.listener()
     async def on_ready(self):
         print('Success! We have logged in as {0.user}'.format(self.bot))
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=".help"))
-    
-    #delete command message after its executed
+
+    # delete command message after its executed
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
         if ctx.message.content.startswith('.'):
             return
         else:
             await ctx.message.delete()
-    
-    #on_message_delete
+
+    # on_message_delete
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.author.bot:
@@ -65,10 +55,11 @@ class events(commands.Cog):
             return
         if message.content.startswith('.'):
             return
-        embed = makeEmbed(0xFF0000, "Message Deleted", f"{message.author.name}'s message was deleted in {message.channel.mention} at {getTime()} \n\n Message:\n```{message.content}```")
-        await self.bot.get_channel(int(logChannel)).send(embed = embed)
-    
-    #on_message_edit
+        embed = make_embed(0xFF0000, "Message Deleted",
+                           f"{message.author.name}'s message was deleted in {message.channel.mention} at {get_time()} \n\n Message:\n```{message.content}```")
+        await self.bot.get_channel(int(logChannel)).send(embed=embed)
+
+    # on_message_edit
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         if after.author.bot:
@@ -79,11 +70,12 @@ class events(commands.Cog):
             return
         if after.content.startswith('.'):
             return
-        embed = makeEmbed(0xFF0000, "Message Edited", f"{after.author.name}'s message was edited in {after.channel.mention} at {getTime()} \n\n Before:\n```{before.content}```\n\n After:\n```{after.content}```")
-        await self.bot.get_channel(915101965820784661).send(embed = embed)
+        embed = make_embed(0xFF0000, "Message Edited",
+                           f"{after.author.name}'s message was edited in {after.channel.mention} at {get_time()} \n\n Before:\n```{before.content}```\n\n After:\n```{after.content}```")
+        await self.bot.get_channel(915101965820784661).send(embed=embed)
 
-    #spam prevention
-    #https://stackoverflow.com/a/64961500
+    # spam prevention
+    # https://stackoverflow.com/a/64961500
     @commands.Cog.listener()
     async def on_message(self, ctx):
         global author_msg_counts
@@ -115,17 +107,19 @@ class events(commands.Cog):
         # might be trying to update this at the same time. Not sure though.
 
         if len(author_msg_times[author_id]) > max_msg_per_window:
-            await ctx.channel.send(embed = makeEmbed(0xFF0000, "Spam detected", "Please don't spam."))
+            await ctx.channel.send(embed=make_embed(0xFF0000, "Spam detected", "Please don't spam."))
             # mute the user for 1 minute
-            await ctx.author.add_roles(discord.utils.get(ctx.guild.roles, name = 'muted'))
+            await ctx.author.add_roles(discord.utils.get(ctx.guild.roles, name='muted'))
             await asyncio.sleep(60)
-            await ctx.author.remove_roles(discord.utils.get(ctx.guild.roles, name = 'muted'))
+            await ctx.author.remove_roles(discord.utils.get(ctx.guild.roles, name='muted'))
 
-    #on memeber leave and send message to log channel
+    # on memeber leave and send message to log channel
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        embed = makeEmbed(0xFF0000, "Member Left", f"{member.name}#{member.discriminator} has left the server at {getTime()}")
-        await self.bot.get_channel(logChannel).send(embed = embed)
-            
+        embed = make_embed(0xFF0000, "Member Left",
+                           f"{member.name}#{member.discriminator} has left the server at {get_time()}")
+        await self.bot.get_channel(logChannel).send(embed=embed)
+
+
 async def setup(bot):
-    await bot.add_cog(events(bot))
+    await bot.add_cog(Events(bot))
