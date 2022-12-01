@@ -105,7 +105,7 @@ class Tictactoe(commands.Cog):
                         global gameOver
                         for condition in winning_conditions:
                             if board[condition[0]] == mark and board[condition[1]] == mark and board[
-                                condition[2]] == mark:
+                                    condition[2]] == mark:
                                 gameOver = True
 
                     check_winner(winningConditions, mark)

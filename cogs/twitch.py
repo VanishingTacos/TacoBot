@@ -4,7 +4,7 @@ from twitchAPI.twitch import Twitch
 from dotenv import load_dotenv
 import requests
 from lib.working_with_json import *
-import traceback
+from pprint import pprint as pp
 
 load_dotenv()
 
@@ -52,6 +52,7 @@ def checkuser(userid):
     get_user_req = requests.Session().get(get_user_url, headers=API_HEADERS)
     get_user_json = get_user_req.json()
     get_user_profile_pic = get_user_json['data'][0]['profile_image_url']
+    get_user_display_name = get_user_json['data'][0]['display_name']
     # Get Twitch stream data
     get_stream_url = TWITCH_STREAM_ENDPOINT + userid
     get_stream_req = requests.Session().get(get_stream_url, headers=API_HEADERS)
@@ -71,7 +72,7 @@ def checkuser(userid):
 
             })
             save_json(stream_state, 'JSON/stream_state.json')
-            return create_embed(title, userid, viewer_count, get_user_profile_pic)
+            return create_embed(title, get_user_display_name, viewer_count, get_user_profile_pic), get_user_display_name
         elif userid in load_json('JSON/stream_state.json'):
             stream_state = load_json('JSON/stream_state.json')
             if stream_state[userid][0]['is_live']:
@@ -84,7 +85,8 @@ def checkuser(userid):
                 stream_state[userid][0]['game_name'] = game_name
                 viewer_count = get_stream_json['data'][0]['viewer_count']
                 save_json(stream_state, 'JSON/stream_state.json')
-                return create_embed(title, userid, viewer_count, get_user_profile_pic)
+                return create_embed(title, get_user_display_name, viewer_count,
+                                    get_user_profile_pic), get_user_display_name
     else:
         if userid not in load_json('JSON/stream_state.json'):
             # load stream_state.json
@@ -113,10 +115,12 @@ class Twitch(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def live_notifs_loop(self):
-        get_embed = checkuser('vanishingtacos')
+        name = 'tayxo'
+        check = checkuser(name)
 
         try:
-            await self.bot.get_channel(911372583235092485).send(embed=get_embed)
+            await self.bot.get_channel(911372583235092485).send(
+                f"{check[1]} is now live on https://twitch.tv/{name}! Go check it out!", embed=check[0])
         except AttributeError:
             pass
 

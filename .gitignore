@@ -2,3 +2,6 @@
 JSON/*.json
 *__pycache__
 cogs/test.py
+.fleet/*
+.idea/*
+.vscode/*
