@@ -35,7 +35,7 @@ This project is still in **_HEAVY_** development!
 
 - [x] Notifications for Twitch/YouTube
   - [x] Twitch
-  - [x] YouTube - in progress
+  - [x] YouTube
 - [ ] Internet wide search (YouTube, Google, Etc)
 - [ ] Schduled messages
 - [ ] Memeber counter
