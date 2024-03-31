@@ -62,7 +62,6 @@ class Moderation(commands.Cog):
     @app_commands.command(name='warn', description='Give warning to a member.')
     @commands.has_role('new role1')
     async def warn(self, interaction: discord.Interaction, username: discord.Member, reason: str = None):
-
         load_warnings = load_json('JSON/warnings.json')
 
         if str(username.id) not in load_json('JSON/warnings.json'):
@@ -263,15 +262,16 @@ class Moderation(commands.Cog):
                     await interaction.response.send_message(embed=make_embed(discord.Color.red(), 'Error',
                                                                              f'{username.name} warning {warning} does not exist'))
 
+    # TODO: why does this get a `The application did not respond` error?
     # purge messages
     @app_commands.command(name='purge', description='Purge x amount of messages.')
     @commands.has_role('new role1')
     async def purge(self, interaction: discord.Interaction, amount: int):
-        await interaction.channel.purge(limit=amount + 1)
-        msg = await interaction.response.send_message(
-            embed=make_embed(discord.Color.green(), 'Success', f'✅ {amount} messages have been purged!'))
-        await asyncio.sleep(3)
-        await msg.delete()
+            await interaction.channel.purge(limit=amount + 1)
+            msg = await interaction.response.send_message(
+                embed=make_embed(discord.Color.green(), 'Success', f'✅ {amount} messages have been purged!'))
+            await asyncio.sleep(3)
+            await msg.delete()
 
     # show infomation about a member
     @app_commands.command(name='userinfo', description='Display infomation about a member.')
@@ -293,112 +293,13 @@ class Moderation(commands.Cog):
             text=f'Requested by {interaction.user.name}', icon_url=interaction.user.avatar)
         await interaction.response.send_message(embed=embed)
 
-    # create poll
-    # todo https://github.com/JohnnyJayJay/instant-poll/blob/main/poll-demo.gif
-    # @app_commands.command(name='poll', description='Create a poll.')
-    # @commands.has_role('new role1')
-    # async def poll(self, interaction: discord.Interaction, question: str):
-    #
-    #     # check if a poll in poll.json has the status of 'open'
-    #     # if it does, then the bot will not create another poll
-    #     # if it doesn't, then the bot will create a new poll
-    #
-    #     def make_poll(question):
-    #         embed = discord.Embed(title='Poll', color=discord.Color.green())
-    #         embed.add_field(name='Question', value=question)
-    #         view = View()
-    #         option1 = Button(style=discord.ButtonStyle.blurple, emoji="✅")
-    #         option2 = Button(style=discord.ButtonStyle.green, emoji="❌")
-    #         view.add_item(option1)
-    #         view.add_item(option2)
-    #         return [view, embed]
-    #
-    #     get_polls = load_json('JSON/poll.json')
-    #     msg = await interaction.response.send_message(view=make_poll(question)[0], embed=make_poll(question)[1])
-    #
-    #     try:
-    #         latest_poll_id = get_polls['latestPollID']
-    #     except KeyError:
-    #         latest_poll_id = 0
-    #
-    #     if len(get_polls) == 0:
-    #         get_polls['latestPollID'] = msg.id
-    #         get_polls[msg.id] = [{
-    #             'question': question,
-    #             'status': 'open',
-    #             'reactions': [],
-    #             'author': interaction.user.id,
-    #             'channel': interaction.channel.id
-    #         }]
-    #         save_json(get_polls, 'JSON/poll.json')
-    #         # await msg.add_reaction('✅')
-    #         # await msg.add_reaction('❌')
-    #
-    #     elif get_polls[str(latest_poll_id)][0]['status'] == 'o pen':
-    #         await msg.delete()
-    #         await interaction.response.send_message(
-    #             embed=make_embed(discord.Color.red(), 'Error', 'A poll is already open!'))
-    #     else:
-    #         get_polls['latestPollID'] = msg.id
-    #         get_polls[msg.id] = [{
-    #             'question': question,
-    #             'status': 'open',
-    #             'reactions': [],
-    #             'author': interaction.user.id,
-    #             'channel': interaction.channel.id
-    #         }]
-    #         save_json(get_polls, 'JSON/poll.json')
-    #         await msg.add_reaction('✅')
-    #         await msg.add_reaction('❌')
-    #
-    # # close poll and get total number of checks and crosses
-    # @app_commands.command(name='closepoll', description='Close the current open poll.')
-    # @commands.has_role('new role1')
-    # async def closepoll(self, interaction: discord.Interaction):
-    #     get_polls = load_json('JSON/poll.json')
-    #
-    #     try:
-    #         latest_poll_id = load_json('JSON/poll.json')['latestPollID']
-    #     except KeyError:
-    #         latest_poll_id = 0
-    #
-    #     if len(load_json('JSON/poll.json')) == 0:
-    #         await interaction.response.send_message(
-    #             embed=make_embed(discord.Color.red(), 'Error', 'There is no poll to close!'))
-    #     elif get_polls[str(latest_poll_id)][0]['status'] == 'closed':
-    #         await interaction.response.send_message(
-    #             embed=make_embed(discord.Color.red(), 'Error', 'There is no poll to close!'))
-    #     else:
-    #         get_polls[str(latest_poll_id)][0]['status'] = 'closed'
-    #         print(get_polls)
-    #         save_json(get_polls, 'JSON/poll.json')
-    #
-    #         # get total number of checks and crosses
-    #         get_poll = await interaction.fetch_message(latest_poll_id)
-    #
-    #         for reaction in get_poll.reactions:
-    #             if reaction.emoji == '✅':
-    #                 checks = reaction.count - 1
-    #             elif reaction.emoji == '❌':
-    #                 crosses = reaction.count - 1
-    #
-    #         emebed = discord.Embed(title='Poll Results',
-    #                                color=discord.Color.green())
-    #         emebed.add_field(name='Question', value=get_polls[str(
-    #             latest_poll_id)][0]['question'], inline=False)
-    #         emebed.add_field(name='✅', value=checks)
-    #         emebed.add_field(name='❌', value=crosses)
-    #         emebed.add_field(name='Total', value=checks + crosses)
-    #         emebed.set_footer(text=f'Here is a jump link for the poll')
-    #         await ctx.send(embed=emebed)
-
     # say something
     @app_commands.command(name='say', description='Say something.')
     @commands.has_role('new role1')
     async def say(self, interaction: discord.Interaction, message: str):
         await interaction.response.send_message(message)
 
-    # add role
+    # add role to a member
     @app_commands.command(name='addrole', description='Add a roll to a member.')
     @commands.has_role('new role1')
     async def addrole(self, interaction: discord.Interaction, username: discord.Member, role: str):
@@ -407,7 +308,7 @@ class Moderation(commands.Cog):
         await interaction.response.send_message(
             embed=make_embed(discord.Color.green(), 'Success', f'✅ {role} has been added to {username.name}'))
 
-    # remove role
+    # remove role from a user
     @app_commands.command(name='removerole', description='Remove a roll from a member.')
     @commands.has_role('new role1')
     async def removerole(self, interaction: discord.Interaction, username: discord.Member, role: str):
@@ -416,7 +317,7 @@ class Moderation(commands.Cog):
         await interaction.response.send_message(
             embed=make_embed(discord.Color.red(), 'Role Removed', f'{role} has been removed from {username.name}'))
 
-    # create new role
+    # create new role to the server
     @app_commands.command(name='createrole', description='Create a server roll.')
     @commands.has_role('new role1')
     async def createrole(self, interaction: discord.Interaction, role: str):
