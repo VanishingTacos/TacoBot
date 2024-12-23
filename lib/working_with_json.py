@@ -20,6 +20,8 @@ def load_json(path):
 
 def save_json(data, path):
     # print('saving ' + path)
+    if '../' in path or '..\\' in path:
+        raise Exception('Invalid file path')
     with open(path, 'w') as f:
         json.dump(data, f)
         f.close()
