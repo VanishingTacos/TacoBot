@@ -12,15 +12,20 @@ from discord.ui import Button, View
 import asyncio
 from datetime import datetime
 from lib.working_with_json import *
+from dotenv import load_dotenv
+
+load_dotenv()
+
+base_dir = os.environ.get("BASE_DIR")
 
 # check for warnings.json file
-create_json_if_not_exists('JSON/warnings.json')
+create_json_if_not_exists(base_dir, 'JSON/warnings.json')
 
 # check for bans.json file
-create_json_if_not_exists('JSON/bans.json')
+create_json_if_not_exists(base_dir, 'JSON/bans.json')
 
 # check for poll.json file
-create_json_if_not_exists('JSON/poll.json')
+create_json_if_not_exists(base_dir, 'JSON/poll.json')
 
 
 # Get current time and date
@@ -62,9 +67,9 @@ class Moderation(commands.Cog):
     @app_commands.command(name='warn', description='Give warning to a member.')
     @commands.has_role('new role1')
     async def warn(self, interaction: discord.Interaction, username: discord.Member, reason: str = None):
-        load_warnings = load_json('JSON/warnings.json')
+        load_warnings = load_json(base_dir, 'JSON/warnings.json')
 
-        if str(username.id) not in load_json('JSON/warnings.json'):
+        if str(username.id) not in load_json(base_dir, 'JSON/warnings.json'):
             load_warnings[username.id] = []
             load_warnings[username.id].append({
                 'warned_by': interaction.user.id,
@@ -72,7 +77,7 @@ class Moderation(commands.Cog):
                 'reason': reason
             })
             # save to json
-            save_json(load_warnings, 'JSON/warnings.json')
+            save_json(load_warnings, base_dir, 'JSON/warnings.json')
             await interaction.response.send_message(
                 embed=make_embed(discord.Color.green(), 'Success', f'{username.name} has been warned'))
         else:
@@ -83,7 +88,7 @@ class Moderation(commands.Cog):
                 'reason': reason
             })
             # save to json
-            save_json(load_warnings, 'JSON/warnings.json')
+            save_json(load_warnings, base_dir, 'JSON/warnings.json')
 
             await interaction.response.send_message(
                 embed=make_embed(discord.Color.green(), 'Success', f'{username.name} has been warned'))
@@ -92,7 +97,7 @@ class Moderation(commands.Cog):
     @app_commands.command(name='listwarnings', description='List the warnings for a members.')
     @commands.has_role('new role1')
     async def listwarnings(self, interaction: discord.Interaction, username: discord.Member):
-        load_warnings = load_json('JSON/warnings.json')
+        load_warnings = load_json(base_dir, 'JSON/warnings.json')
         if str(username.id) not in load_warnings:
             await interaction.response.send_message(f'{username.name} has no warnings')
         else:
@@ -202,32 +207,32 @@ class Moderation(commands.Cog):
     @app_commands.command(name='clearallwarnings', description='Clear all warning for a member')
     @commands.has_role('new role1')
     async def clearallwarnings(self, interaction: discord.Interaction, username: discord.Member):
-        load_warnings = load_json('JSON/warnings.json')
+        load_warnings = load_json(base_dir, 'JSON/warnings.json')
         if str(username.id) not in load_warnings:
             await interaction.response.send_message(f'{username.name} has no warnings')
         else:
             del load_warnings[str(username.id)]
-            save_json(load_warnings, 'JSON/warnings.json')
+            save_json(load_warnings, base_dir, 'JSON/warnings.json')
             await interaction.response.send_message(f'{username.name} warnings have been cleared')
 
     # remove the last warning from member. If last warning then remove the user from the list
     @app_commands.command(name='clearlastwarning', description='Clears the last givin warning for a member.')
     @commands.has_role('new role1')
     async def clearlastwarning(self, interaction: discord.Interaction, username: discord.Member):
-        load_warnings = load_json('JSON/warnings.json')
+        load_warnings = load_json(base_dir,'JSON/warnings.json')
         if str(username.id) not in load_warnings:
             await interaction.response.send_message(
                 embed=make_embed(discord.Color.red(), 'Error', f'{username.name} has no warnings'))
         else:
             if len(load_warnings[str(username.id)]) == 1:
                 del load_warnings[str(username.id)]
-                save_json(load_warnings, 'JSON/warnings.json')
+                save_json(load_warnings, base_dir, 'JSON/warnings.json')
                 await interaction.response.send_message(embed=make_embed(discord.Color.green(), 'Success',
                                                                          f'{username.name} '
                                                                          f'last warning has been cleared!'))
             else:
                 load_warnings[str(username.id)].pop()
-                save_json(load_warnings, 'JSON/warnings.json')
+                save_json(load_warnings, base_dir, 'JSON/warnings.json')
                 await interaction.response.send_message(embed=make_embed(discord.Color.green(), 'Success',
                                                                          f'{username.name} last warning has been cleared!'))
 
@@ -236,7 +241,7 @@ class Moderation(commands.Cog):
     @app_commands.command(name='clearwarning', description='Remove a specific warning using its index')
     @commands.has_role('new role1')
     async def clearwarning(self, interaction: discord.Interaction, username: discord.Member, warning: int = None):
-        load_warnings = load_json('JSON/warnings.json')
+        load_warnings = load_json(base_dir,'JSON/warnings.json')
         if str(username.id) not in load_warnings:
             await interaction.response.send_message(
                 embed=make_embed(discord.Color.red(), 'Error', f'{username.name} has no warnings'))
@@ -255,7 +260,7 @@ class Moderation(commands.Cog):
             else:
                 try:
                     load_warnings[str(username.id)].pop(warning - 1)
-                    save_json(load_warnings, 'JSON/warnings.json')
+                    save_json(load_warnings, base_dir, 'JSON/warnings.json')
                     await interaction.response.send_message(embed=make_embed(discord.Color.green(), 'Success',
                                                                              f'{username.name} warning {warning} has been cleared!'))
                 except IndexError:

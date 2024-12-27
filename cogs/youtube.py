@@ -10,8 +10,10 @@ from lib.working_with_json import *
 
 load_dotenv()
 
+base_dir = os.environ.get("BASE_DIR")
+
 # check for youtube_users.json
-create_json_if_not_exists("JSON/youtube_users.json")
+create_json_if_not_exists(base_dir,"JSON/youtube_users.json")
 
 api_key = os.environ.get("YOUTUBE_API_KEY")
 base_search_url = "https://www.googleapis.com/youtube/v3/search?"
@@ -82,7 +84,7 @@ class Youtube(commands.Cog):
     @tasks.loop(minutes=15)
     async def new_video_notifs_loop(self):
         # load youtube_users.json function
-        load_youtube = load_json("JSON/youtube_users.json")
+        load_youtube = load_json(base_dir, "JSON/youtube_users.json")
         username = "###"
         if username in load_youtube:
             channel_id = load_youtube[username][0]["channel_id"]
@@ -109,7 +111,7 @@ class Youtube(commands.Cog):
                 embed=embed,
             )
 
-            save_json(load_youtube, "JSON/youtube_users.json")
+            save_json(load_youtube, base_dir,"JSON/youtube_users.json")
         elif username not in load_youtube:
             channel_id = get_channel_id(username)
             profile_image = get_channel_profile_image(channel_id)

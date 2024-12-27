@@ -8,8 +8,10 @@ from pprint import pprint as pp
 
 load_dotenv()
 
+base_dir = os.environ.get("BASE_DIR")
+
 # check for stream_state.json
-create_json_if_not_exists('JSON/stream_state.json')
+create_json_if_not_exists(base_dir, 'JSON/stream_state.json')
 
 
 def create_embed(title, userid, viewer_count, get_user_profile_pic):

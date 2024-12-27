@@ -5,3 +5,4 @@ cogs/test.py
 .fleet/*
 .idea/*
 .vscode/*
+.venv
